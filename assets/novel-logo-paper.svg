@@ -1,0 +1,68 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f7f2e8"/>
+      <stop offset="1" stop-color="#efe7d6"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.3" r="0.8">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.55"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="book" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#138a7e"/>
+      <stop offset="1" stop-color="#0b5b53"/>
+    </linearGradient>
+    <radialGradient id="shadow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#5a4a2a" stop-opacity="0.22"/>
+      <stop offset="0.7" stop-color="#5a4a2a" stop-opacity="0.09"/>
+      <stop offset="1" stop-color="#5a4a2a" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="spine" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0"/>
+      <stop offset="0.5" stop-color="#ffffff" stop-opacity="0.28"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+
+  <!-- paper field -->
+  <rect width="1024" height="1024" fill="url(#bg)"/>
+  <rect width="1024" height="1024" fill="url(#glow)"/>
+  <!-- thin seal-style frame -->
+  <rect x="86" y="86" width="852" height="852" rx="150" fill="none" stroke="#0f766e" stroke-opacity="0.16" stroke-width="6"/>
+
+  <!-- soft contact shadow -->
+  <ellipse cx="512" cy="666" rx="300" ry="46" fill="url(#shadow)"/>
+
+  <!-- page-block thickness (behind) -->
+  <g transform="translate(0,16)" fill="#093f3a">
+    <path d="M512 404 C628 372 724 372 800 402 L800 596 C724 566 628 566 512 600 Z"/>
+    <path d="M512 404 C396 372 300 372 224 402 L224 596 C300 566 396 566 512 600 Z"/>
+  </g>
+
+  <!-- open book: two pages -->
+  <path d="M512 404 C628 372 724 372 800 402 L800 596 C724 566 628 566 512 600 Z" fill="url(#book)"/>
+  <path d="M512 404 C396 372 300 372 224 402 L224 596 C300 566 396 566 512 600 Z" fill="url(#book)"/>
+
+  <!-- center spine highlight -->
+  <rect x="500" y="404" width="24" height="196" fill="url(#spine)"/>
+
+  <!-- text lines (right page) -->
+  <g fill="#fbf3e2" opacity="0.85">
+    <rect x="566" y="450" width="180" height="13" rx="6.5"/>
+    <rect x="566" y="486" width="200" height="13" rx="6.5"/>
+    <rect x="566" y="522" width="160" height="13" rx="6.5"/>
+    <rect x="566" y="558" width="120" height="13" rx="6.5"/>
+  </g>
+  <!-- text lines (left page) -->
+  <g fill="#fbf3e2" opacity="0.85">
+    <rect x="278" y="450" width="180" height="13" rx="6.5"/>
+    <rect x="258" y="486" width="200" height="13" rx="6.5"/>
+    <rect x="298" y="522" width="160" height="13" rx="6.5"/>
+    <rect x="338" y="558" width="120" height="13" rx="6.5"/>
+  </g>
+
+  <!-- seal-red bookmark ribbon -->
+  <path d="M540 350 L584 350 L584 478 L562 452 L540 478 Z" fill="#b23b2e"/>
+  <rect x="568" y="350" width="16" height="128" fill="#000000" opacity="0.14"/>
+  <rect x="540" y="350" width="6" height="128" fill="#ffffff" opacity="0.18"/>
+</svg>
