@@ -5,8 +5,10 @@ import {
   BookshelfItem,
   Chapter,
   Novel,
+  NovelSource,
   PublicUser,
   ReadingProgress,
+  SearchHistoryItem,
   Session,
   User,
   UserPreferences,
@@ -22,17 +24,28 @@ export class InMemoryStore {
   private nextChapterId = 1;
   private nextBookshelfId = 1;
   private nextProgressId = 1;
+  private nextSearchHistoryId = 1;
   private nextPreferencesId = 1;
 
   private readonly users = new Map<number, User>();
   private readonly sessions = new Map<string, Session>();
   private readonly novels = new Map<number, Novel>();
+  private readonly novelSources = new Map<string, NovelSource>();
   private readonly chapters = new Map<number, Chapter>();
   private readonly bookshelf = new Map<number, BookshelfItem>();
   private readonly progress = new Map<number, ReadingProgress>();
+  private readonly searchHistory = new Map<number, SearchHistoryItem>();
   private readonly preferences = new Map<number, UserPreferences>();
 
   constructor() {
+    this.novelSources.set('quanben', {
+      code: 'quanben',
+      name: 'quanben.io',
+      baseUrl: 'https://www.quanben.io/',
+      enabled: true,
+      sortOrder: 10,
+      updatedAt: new Date().toISOString(),
+    });
     this.createUser({
       username: 'admin',
       password: 'Admin12345',
@@ -72,6 +85,28 @@ export class InMemoryStore {
     };
     this.users.set(user.id, user);
     return user;
+  }
+
+  listNovelSources(): NovelSource[] {
+    return Array.from(this.novelSources.values()).sort(
+      (a, b) => a.sortOrder - b.sortOrder || a.code.localeCompare(b.code),
+    );
+  }
+
+  updateNovelSourceEnabled(code: string, enabled: boolean): NovelSource | undefined {
+    const source = this.novelSources.get(code);
+    if (!source) {
+      return undefined;
+    }
+    if (!enabled) {
+      const enabledCount = this.listNovelSources().filter((item) => item.enabled).length;
+      if (source.enabled && enabledCount <= 1) {
+        return undefined;
+      }
+    }
+    const updated = { ...source, enabled, updatedAt: new Date().toISOString() };
+    this.novelSources.set(code, updated);
+    return updated;
   }
 
   listUsers(): AdminUser[] {
@@ -127,6 +162,11 @@ export class InMemoryStore {
     for (const [itemId, item] of this.progress.entries()) {
       if (item.userId === id) {
         this.progress.delete(itemId);
+      }
+    }
+    for (const [itemId, item] of this.searchHistory.entries()) {
+      if (item.userId === id) {
+        this.searchHistory.delete(itemId);
       }
     }
     for (const [itemId, item] of this.preferences.entries()) {
@@ -368,6 +408,56 @@ export class InMemoryStore {
     };
     this.progress.set(item.id, item);
     return item;
+  }
+
+  listSearchHistory(userId: number, limit = 20): SearchHistoryItem[] {
+    return Array.from(this.searchHistory.values())
+      .filter((item) => item.userId === userId)
+      .sort((a, b) => Date.parse(b.lastSearchedAt) - Date.parse(a.lastSearchedAt) || b.id - a.id)
+      .slice(0, limit);
+  }
+
+  recordSearchHistory(userId: number, keyword: string): SearchHistoryItem {
+    const normalized = keyword.trim();
+    const existing = Array.from(this.searchHistory.values()).find(
+      (item) => item.userId === userId && item.keyword === normalized,
+    );
+    const now = new Date().toISOString();
+    if (existing) {
+      existing.searchCount += 1;
+      existing.lastSearchedAt = now;
+      existing.updatedAt = now;
+      this.searchHistory.set(existing.id, existing);
+      return existing;
+    }
+
+    const item: SearchHistoryItem = {
+      id: this.nextSearchHistoryId++,
+      userId,
+      keyword: normalized,
+      searchCount: 1,
+      lastSearchedAt: now,
+      createdAt: now,
+      updatedAt: now,
+    };
+    this.searchHistory.set(item.id, item);
+    return item;
+  }
+
+  deleteSearchHistoryItem(userId: number, id: number): boolean {
+    const item = this.searchHistory.get(id);
+    if (!item || item.userId !== userId) {
+      return false;
+    }
+    return this.searchHistory.delete(id);
+  }
+
+  clearSearchHistory(userId: number): void {
+    for (const [id, item] of this.searchHistory.entries()) {
+      if (item.userId === userId) {
+        this.searchHistory.delete(id);
+      }
+    }
   }
 
   getPreferences(userId: number): UserPreferences {

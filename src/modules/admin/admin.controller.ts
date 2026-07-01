@@ -6,32 +6,47 @@ import { AdminService } from './admin.service';
 
 @UseGuards(AuthGuard, RolesGuard)
 @Roles('admin')
-@Controller('admin/users')
+@Controller('admin')
 export class AdminController {
   constructor(private readonly adminService: AdminService) {}
 
-  @Get()
+  @Get('users')
   listUsers() {
     return this.adminService.listUsers();
   }
 
-  @Patch(':id/enable')
+  @Patch('users/:id/enable')
   enable(@Param('id', ParseIntPipe) id: number) {
     return this.adminService.setStatus(id, 'enabled');
   }
 
-  @Patch(':id/disable')
+  @Patch('users/:id/disable')
   disable(@Param('id', ParseIntPipe) id: number) {
     return this.adminService.setStatus(id, 'disabled');
   }
 
-  @Patch(':id/reset-password')
+  @Patch('users/:id/reset-password')
   resetPassword(@Param('id', ParseIntPipe) id: number) {
     return this.adminService.resetPassword(id);
   }
 
-  @Delete(':id')
+  @Delete('users/:id')
   delete(@Param('id', ParseIntPipe) id: number) {
     return this.adminService.deleteUser(id);
+  }
+
+  @Get('sources')
+  listSources() {
+    return this.adminService.listSources();
+  }
+
+  @Patch('sources/:code/enable')
+  enableSource(@Param('code') code: string) {
+    return this.adminService.setSourceEnabled(code, true);
+  }
+
+  @Patch('sources/:code/disable')
+  disableSource(@Param('code') code: string) {
+    return this.adminService.setSourceEnabled(code, false);
   }
 }

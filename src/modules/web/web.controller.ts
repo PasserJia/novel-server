@@ -388,7 +388,7 @@ export class WebController {
     }
     .search-bar {
       display: grid;
-      grid-template-columns: minmax(220px, 1fr) 180px auto;
+      grid-template-columns: minmax(220px, 1fr) auto;
       gap: 8px;
     }
     .reader-layout {
@@ -1406,7 +1406,7 @@ export class WebController {
     }
     .search-bar {
       display: grid;
-      grid-template-columns: minmax(220px, 1fr) 180px auto;
+      grid-template-columns: minmax(220px, 1fr) auto;
       gap: 10px;
     }
     .reader-layout {
@@ -2285,6 +2285,325 @@ export class WebController {
     #refreshUsersBtn { background: rgba(240,232,214,.06); color: var(--g-sub); border: 1px solid var(--g-line); }
     #refreshUsersBtn:hover { background: rgba(55,194,176,.16); border-color: rgba(55,194,176,.5); color: var(--g-ink); }
 
+    #bookstoreView {
+      max-width: 1180px;
+      gap: 16px;
+    }
+    .bookstore-hero {
+      position: relative;
+      overflow: hidden;
+      min-height: 238px;
+      display: grid;
+      grid-template-columns: minmax(0, .9fr) minmax(360px, 1.1fr);
+      align-items: end;
+      gap: 30px;
+      padding: clamp(22px, 4vw, 42px);
+    }
+    .bookstore-hero::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(110deg, rgba(55,194,176,.18), transparent 48%),
+        radial-gradient(420px 240px at 84% 22%, rgba(208,162,79,.18), transparent 62%),
+        linear-gradient(180deg, rgba(255,255,255,.045), transparent);
+      pointer-events: none;
+    }
+    .bookstore-copy, .bookstore-search { position: relative; z-index: 1; }
+    .bookstore-kicker {
+      display: inline-flex;
+      align-items: center;
+      height: 26px;
+      padding: 0 11px;
+      border-radius: 999px;
+      color: #07312c;
+      background: var(--g-teal);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: .08em;
+      margin-bottom: 14px;
+    }
+    .bookstore-copy h1 {
+      color: var(--g-ink);
+      font-family: var(--font-display);
+      font-size: clamp(34px, 6vw, 64px);
+      line-height: .98;
+      letter-spacing: 0;
+      margin-bottom: 14px;
+    }
+    .bookstore-copy p {
+      color: var(--g-sub);
+      font-size: 16px;
+      line-height: 1.7;
+      max-width: 380px;
+    }
+    .bookstore-search {
+      align-self: stretch;
+      display: grid;
+      align-content: end;
+      gap: 14px;
+    }
+    #bookstoreView .search-bar {
+      grid-template-columns: minmax(0, 1fr) 104px;
+      gap: 10px;
+      padding: 8px;
+      border-radius: 18px;
+      background: rgba(8, 7, 6, .34);
+      border: 1px solid rgba(240,232,214,.10);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.05);
+    }
+    #bookstoreView .search-bar input {
+      height: 48px;
+      border-radius: 12px;
+      font-size: 16px;
+      padding: 0 15px;
+    }
+    #bookstoreView .search-bar button {
+      height: 48px;
+      border-radius: 12px;
+      font-size: 16px;
+    }
+    .bookstore-chips {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .history-pill {
+      height: 32px;
+      display: inline-grid;
+      grid-template-columns: minmax(0, 1fr) 22px;
+      align-items: center;
+      gap: 4px;
+      padding: 0 5px 0 12px;
+      border-radius: 999px;
+      background: rgba(240,232,214,.07);
+      color: var(--g-sub);
+      border: 1px solid var(--g-line);
+      box-shadow: none;
+      font-size: 13px;
+      max-width: 170px;
+    }
+    .history-pill:hover {
+      transform: translateY(-1px);
+      background: rgba(55,194,176,.13);
+      border-color: rgba(55,194,176,.42);
+      color: var(--g-ink);
+    }
+    .history-pill-text {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      cursor: pointer;
+    }
+    .history-pill-delete {
+      width: 22px;
+      height: 22px;
+      padding: 0;
+      border-radius: 50%;
+      background: transparent;
+      border: 0;
+      color: var(--g-mute);
+      box-shadow: none;
+      font-size: 15px;
+      line-height: 1;
+    }
+    .history-pill-delete:hover {
+      background: rgba(208,88,75,.18);
+      color: #f4c9c2;
+      transform: none;
+      box-shadow: none;
+    }
+    .history-all-btn {
+      height: 32px;
+      padding: 0 12px;
+      border-radius: 999px;
+      background: rgba(55,194,176,.14);
+      color: #9bf4e8;
+      border: 1px solid rgba(55,194,176,.36);
+      box-shadow: none;
+      font-size: 13px;
+    }
+    .history-all-btn:hover {
+      background: rgba(55,194,176,.22);
+      border-color: rgba(55,194,176,.55);
+      color: #fff;
+      transform: translateY(-1px);
+    }
+    .history-all-panel {
+      display: none;
+      position: relative;
+      z-index: 1;
+      margin-top: 2px;
+      padding: 14px;
+      border-radius: 16px;
+      background: rgba(8, 7, 6, .28);
+      border: 1px solid rgba(240,232,214,.10);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.04);
+    }
+    .bookstore-hero.history-expanded {
+      min-height: 330px;
+      align-items: start;
+    }
+    .bookstore-hero.history-expanded .bookstore-search {
+      align-content: start;
+    }
+    .bookstore-hero.history-expanded .history-all-panel {
+      display: grid;
+      gap: 12px;
+    }
+    .history-all-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      max-height: 190px;
+      overflow-y: auto;
+    }
+    .history-all-actions {
+      display: flex;
+      justify-content: flex-end;
+    }
+    .history-clear-all {
+      height: 34px;
+      padding: 0 13px;
+      border-radius: 999px;
+      background: rgba(208,88,75,.16);
+      color: #f4c9c2;
+      border: 1px solid rgba(208,88,75,.42);
+      box-shadow: none;
+      font-size: 13px;
+    }
+    .history-clear-all:hover {
+      background: rgba(208,88,75,.28);
+      color: #fff;
+      transform: none;
+    }
+    .bookstore-layout {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 14px;
+      align-items: start;
+    }
+    .bookstore-results {
+      min-height: 306px;
+    }
+    .bookstore-empty {
+      min-height: 306px;
+      border-radius: 18px;
+      border: 1px dashed var(--g-line);
+      background:
+        linear-gradient(135deg, rgba(55,194,176,.08), transparent 42%),
+        rgba(30, 26, 21, .42);
+      backdrop-filter: var(--g-blur);
+      -webkit-backdrop-filter: var(--g-blur);
+      color: var(--g-sub);
+      display: grid;
+      place-items: center;
+      align-content: center;
+      gap: 10px;
+      padding: 34px;
+      text-align: center;
+    }
+    .bookstore-empty strong {
+      color: var(--g-ink);
+      font-family: var(--font-display);
+      font-size: 24px;
+      letter-spacing: 0;
+    }
+    .bookstore-empty span {
+      max-width: 420px;
+      line-height: 1.7;
+    }
+    #bookstoreView .result-row {
+      grid-template-columns: 70px minmax(0, 1fr) auto;
+      min-height: 124px;
+    }
+    #bookstoreView .cover {
+      width: 70px;
+      height: 96px;
+      border-radius: 10px;
+    }
+    .source-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 12px;
+    }
+    .source-row {
+      display: grid;
+      gap: 14px;
+      padding: 18px;
+      border-radius: 16px;
+      background: var(--g-glass);
+      border: 1px solid var(--g-line);
+      backdrop-filter: var(--g-blur);
+      -webkit-backdrop-filter: var(--g-blur);
+      box-shadow: 0 16px 42px rgba(0,0,0,.34);
+      color: var(--g-ink);
+    }
+    .source-row-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: start;
+    }
+    .source-row h3 {
+      margin: 0 0 6px;
+      font-family: var(--font-display);
+      font-size: 21px;
+      letter-spacing: 0;
+    }
+    .source-row p {
+      color: var(--g-mute);
+      font-size: 13px;
+      line-height: 1.5;
+      overflow-wrap: anywhere;
+    }
+    .source-badge {
+      flex: none;
+      display: inline-flex;
+      align-items: center;
+      height: 28px;
+      padding: 0 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: .04em;
+      background: rgba(208,88,75,.16);
+      color: #f4c9c2;
+      border: 1px solid rgba(208,88,75,.38);
+    }
+    .source-badge.enabled {
+      background: rgba(55,194,176,.17);
+      color: #8ff0e4;
+      border-color: rgba(55,194,176,.45);
+    }
+    .source-row .actions {
+      justify-content: flex-start;
+    }
+    .source-row .actions button {
+      background: rgba(240,232,214,.06);
+      color: var(--g-ink);
+      border: 1px solid var(--g-line);
+    }
+    .source-row .actions button:hover {
+      background: rgba(55,194,176,.16);
+      border-color: rgba(55,194,176,.5);
+    }
+    .source-row .actions button.danger {
+      background: rgba(208,88,75,.14);
+      color: #f4c9c2;
+      border-color: rgba(208,88,75,.4);
+    }
+    #refreshSourcesBtn {
+      background: rgba(240,232,214,.06);
+      color: var(--g-sub);
+      border: 1px solid var(--g-line);
+    }
+    #refreshSourcesBtn:hover {
+      background: rgba(55,194,176,.16);
+      border-color: rgba(55,194,176,.5);
+      color: var(--g-ink);
+    }
+
     /* 入场错峰淡入（书城结果 / 用户行） */
     #usersView .user-row { animation: riseIn .45s var(--ease-out) both; }
     #usersView .user-row:nth-child(1){animation-delay:.02s} #usersView .user-row:nth-child(2){animation-delay:.06s}
@@ -2418,6 +2737,83 @@ export class WebController {
         padding: 14px 16px;
         border-radius: 16px;
       }
+      .bookstore-hero {
+        min-height: auto;
+        grid-template-columns: 1fr;
+        gap: 24px;
+        padding: 22px 16px 18px;
+        border-radius: 18px;
+      }
+      .bookstore-copy h1 {
+        font-size: 38px;
+        line-height: 1.04;
+        margin-bottom: 10px;
+      }
+      .bookstore-copy p { font-size: 14px; max-width: none; }
+      #bookstoreView .search-bar {
+        grid-template-columns: 1fr 82px;
+        gap: 8px;
+        padding: 7px;
+        border-radius: 15px;
+      }
+      #bookstoreView .search-bar input {
+        height: 44px;
+        font-size: 15px;
+        padding: 0 12px;
+      }
+      #bookstoreView .search-bar button {
+        height: 44px;
+        font-size: 15px;
+        padding: 0 12px;
+      }
+      .bookstore-chips {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        padding-bottom: 2px;
+        scrollbar-width: none;
+      }
+      .bookstore-chips::-webkit-scrollbar { display: none; }
+      .bookstore-chips .history-pill,
+      .bookstore-chips .history-all-btn { flex: 0 0 auto; }
+      .history-pill { max-width: 150px; }
+      .bookstore-hero.history-expanded {
+        min-height: 390px;
+      }
+      .history-all-list {
+        max-height: 160px;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        overflow-y: hidden;
+        padding-bottom: 2px;
+        scrollbar-width: none;
+      }
+      .history-all-list::-webkit-scrollbar { display: none; }
+      .history-all-list .history-pill { flex: 0 0 auto; }
+      .bookstore-layout {
+        grid-template-columns: 1fr;
+      }
+      .bookstore-results,
+      .bookstore-empty {
+        min-height: 236px;
+      }
+      #bookstoreView .result-row {
+        grid-template-columns: 58px 1fr;
+        align-items: start;
+      }
+      #bookstoreView .cover {
+        width: 58px;
+        height: 82px;
+      }
+      #bookstoreView .result-row .actions {
+        grid-column: 1 / -1;
+        justify-content: stretch;
+      }
+      #bookstoreView .result-row .actions button {
+        width: 100%;
+      }
+      .source-list {
+        grid-template-columns: 1fr;
+      }
     }
   </style>
 </head>
@@ -2520,6 +2916,7 @@ export class WebController {
         <button class="active" data-view="bookshelf"><small>01</small>书架</button>
         <button data-view="bookstore"><small>02</small>书城</button>
         <button data-view="users"><small>03</small>用户管理</button>
+        <button data-view="sourceAdmin"><small>04</small>书城管理</button>
       </nav>
       <button id="drawerLogoutBtn" class="secondary" type="button">退出登录</button>
     </aside>
@@ -2531,22 +2928,33 @@ export class WebController {
       </div>
 
       <div id="bookstoreView" class="view hidden">
-        <div class="view-head">
-          <div>
-            <h1>书城</h1>
-            <p>输入书名，搜遍 quanben.io，一键收进书架，随时接着读。</p>
+        <section class="bookstore-hero panel">
+          <div class="bookstore-copy">
+            <span class="bookstore-kicker">在线书库</span>
+            <h1>下一本书</h1>
+            <p>输入书名或作者，把想看的小说收进书架。</p>
+          </div>
+          <div class="bookstore-search">
+            <div class="search-bar">
+              <input id="keywordInput" placeholder="搜索书名、作者" />
+              <button id="searchBtn">搜索</button>
+            </div>
+            <div id="searchHistoryChips" class="bookstore-chips" aria-label="最近搜索"></div>
+            <div id="searchHistoryPanel" class="history-all-panel">
+              <div id="searchHistoryAllList" class="history-all-list"></div>
+              <div class="history-all-actions">
+                <button id="clearSearchHistoryBtn" class="history-clear-all" type="button">全部删除</button>
+              </div>
+            </div>
+          </div>
+        </section>
+        <div class="bookstore-layout">
+          <div id="searchResults" class="result-list bookstore-results">
+            <div class="bookstore-empty">
+              <strong>输入关键词开始找书</strong>
+            </div>
           </div>
         </div>
-        <div class="panel">
-          <div class="search-bar">
-            <input id="keywordInput" placeholder="输入小说名称" />
-            <select id="sourceSelect">
-              <option value="quanben">quanben.io</option>
-            </select>
-            <button id="searchBtn">搜索</button>
-          </div>
-        </div>
-        <div id="searchResults" class="result-list"></div>
         <div id="searchPager" class="pager hidden"></div>
       </div>
 
@@ -2637,6 +3045,17 @@ export class WebController {
         </div>
         <div id="userList" class="user-list"></div>
       </div>
+
+      <div id="sourceAdminView" class="view hidden">
+        <div class="view-head">
+          <div>
+            <h1>书城管理</h1>
+            <p>管理员可管理小说网站开关，用户搜索只会使用已启用的网站。</p>
+          </div>
+          <button id="refreshSourcesBtn" class="secondary">刷新</button>
+        </div>
+        <div id="sourceAdminList" class="source-list"></div>
+      </div>
     </main>
   </section>
 
@@ -2691,6 +3110,9 @@ export class WebController {
       searchRows: [],
       searchPage: 1,
       searchPageSize: 8,
+      searchHistory: [],
+      searchHistoryExpanded: false,
+      sourceRows: [],
       currentBook: null,
       chapters: [],
       currentChapter: null,
@@ -2919,6 +3341,7 @@ export class WebController {
         el('sideUsername').textContent = state.user.username;
         renderSideAvatar();
         document.querySelector('[data-view="users"]').classList.toggle('hidden', state.user.role !== 'admin');
+        document.querySelector('[data-view="sourceAdmin"]').classList.toggle('hidden', state.user.role !== 'admin');
       } else {
         el('sessionText').textContent = '未登录';
       }
@@ -2952,17 +3375,25 @@ export class WebController {
       }
     }
     function showView(name) {
+      if ((name === 'users' || name === 'sourceAdmin') && (!state.user || state.user.role !== 'admin')) {
+        name = 'bookshelf';
+      }
       if (name !== 'reader') saveProgress(false);
       document.body.classList.toggle('reader-mode', name === 'reader');
       document.body.classList.toggle('reader-chrome-hidden', name === 'reader');
       document.body.classList.toggle('shelf-immersive', name === 'bookshelf');
       closeDrawer();
       document.querySelectorAll('[data-view]').forEach((btn) => btn.classList.toggle('active', btn.dataset.view === name));
-      ['bookshelf', 'bookstore', 'reader', 'users'].forEach((view) => {
+      ['bookshelf', 'bookstore', 'reader', 'users', 'sourceAdmin'].forEach((view) => {
         el(view + 'View').classList.toggle('hidden', view !== name);
       });
       if (name === 'bookshelf') loadBookshelf();
+      if (name === 'bookstore') {
+        resetBookstoreSearch();
+        loadSearchHistory();
+      }
       if (name === 'users') loadUsers();
+      if (name === 'sourceAdmin') loadSources();
     }
     function openDrawer() { document.body.classList.add('drawer-open'); }
     function closeDrawer() { document.body.classList.remove('drawer-open'); }
@@ -3038,6 +3469,9 @@ export class WebController {
       state.currentBook = null;
       state.searchRows = [];
       state.searchPage = 1;
+      state.searchHistory = [];
+      state.searchHistoryExpanded = false;
+      resetBookstoreSearch();
       state.chapters = [];
       state.currentChapter = null;
       state.disabledModalShown = false;
@@ -3303,6 +3737,18 @@ export class WebController {
         };
       });
     }
+    function resetBookstoreSearch() {
+      state.searchRows = [];
+      state.searchPage = 1;
+      const input = el('keywordInput');
+      const results = el('searchResults');
+      const pager = el('searchPager');
+      if (input) input.value = '';
+      if (results) {
+        results.innerHTML = '<div class="bookstore-empty"><strong>输入关键词开始找书</strong></div>';
+      }
+      if (pager) pager.classList.add('hidden');
+    }
     async function searchBooks() {
       try {
         const keyword = el('keywordInput').value.trim();
@@ -3310,17 +3756,19 @@ export class WebController {
           toast('请输入小说名称', true);
           return;
         }
-        state.searchRows = await api('/novels/search?keyword=' + encodeURIComponent(keyword) + '&source=' + encodeURIComponent(el('sourceSelect').value));
+        state.searchRows = await api('/novels/search?keyword=' + encodeURIComponent(keyword));
         state.searchPage = 1;
         renderSearchResults();
       } catch (error) {
         el('searchResults').innerHTML = '<div class="empty">' + escapeHtml(error.message) + '</div>';
         el('searchPager').classList.add('hidden');
+      } finally {
+        loadSearchHistory();
       }
     }
     function renderSearchResults() {
       if (!state.searchRows.length) {
-        el('searchResults').innerHTML = '<div class="empty">没有搜索结果。</div>';
+        el('searchResults').innerHTML = '<div class="bookstore-empty"><strong>暂时没找到</strong><span>换一个书名、作者名或关键词再试试。</span></div>';
         el('searchPager').classList.add('hidden');
         return;
       }
@@ -3345,6 +3793,76 @@ export class WebController {
         state.searchPage = page;
         renderSearchResults();
       });
+    }
+    async function loadSearchHistory() {
+      try {
+        state.searchHistory = await api('/search-history', { silentLoading: true });
+        renderSearchHistory();
+      } catch {
+        state.searchHistory = [];
+        renderSearchHistory();
+      }
+    }
+    function renderSearchHistory() {
+      const chips = el('searchHistoryChips');
+      const allList = el('searchHistoryAllList');
+      const clearBtn = el('clearSearchHistoryBtn');
+      const hero = document.querySelector('.bookstore-hero');
+      if (!chips || !allList || !clearBtn || !hero) return;
+      clearBtn.disabled = !state.searchHistory.length;
+      hero.classList.toggle('history-expanded', !!state.searchHistoryExpanded && !!state.searchHistory.length);
+      if (!state.searchHistory.length) {
+        chips.innerHTML = '';
+        allList.innerHTML = '';
+        return;
+      }
+      const renderPill = (item) => (
+        '<span class="history-pill">' +
+          '<span class="history-pill-text" data-history-search="' + escapeHtml(item.keyword) + '">' + escapeHtml(item.keyword) + '</span>' +
+          '<button class="history-pill-delete" type="button" data-delete-history="' + item.id + '" aria-label="删除搜索记录">×</button>' +
+        '</span>'
+      );
+      chips.innerHTML = '<button id="showAllSearchHistoryBtn" class="history-all-btn" type="button">全部记录</button>' +
+        state.searchHistory.slice(0, 5).map(renderPill).join('');
+      allList.innerHTML = state.searchHistory.map(renderPill).join('');
+      document.querySelectorAll('[data-history-search]').forEach((node) => {
+        node.onclick = () => {
+          el('keywordInput').value = node.dataset.historySearch || '';
+          searchBooks();
+        };
+      });
+      document.querySelectorAll('[data-delete-history]').forEach((btn) => {
+        btn.onclick = () => deleteSearchHistory(Number(btn.dataset.deleteHistory));
+      });
+      const allBtn = el('showAllSearchHistoryBtn');
+      if (allBtn) {
+        allBtn.onclick = () => {
+          state.searchHistoryExpanded = !state.searchHistoryExpanded;
+          renderSearchHistory();
+        };
+        allBtn.textContent = state.searchHistoryExpanded ? '收起' : '全部记录';
+      }
+    }
+    async function deleteSearchHistory(id) {
+      try {
+        await api('/search-history/' + id, { method: 'DELETE', silentLoading: true });
+        await loadSearchHistory();
+      } catch (error) {
+        toast(error.message, true);
+      }
+    }
+    async function clearSearchHistory() {
+      if (!state.searchHistory.length) return;
+      const ok = await glassConfirm({ title: '清空搜索记录', text: '确定删除当前账号的全部搜索记录？', okText: '清空', danger: true });
+      if (!ok) return;
+      try {
+        await api('/search-history', { method: 'DELETE' });
+        state.searchHistoryExpanded = false;
+        await loadSearchHistory();
+        toast('搜索记录已清空');
+      } catch (error) {
+        toast(error.message, true);
+      }
     }
     async function addSearchResult(index) {
       try {
@@ -3539,6 +4057,47 @@ export class WebController {
         el('userList').innerHTML = '<div class="empty">' + escapeHtml(error.message) + '</div>';
       }
     }
+    async function loadSources() {
+      try {
+        state.sourceRows = await api('/admin/sources');
+        renderSources();
+      } catch (error) {
+        el('sourceAdminList').innerHTML = '<div class="empty">' + escapeHtml(error.message) + '</div>';
+      }
+    }
+    function renderSources() {
+      if (!state.sourceRows.length) {
+        el('sourceAdminList').innerHTML = '<div class="empty">暂无小说网站。</div>';
+        return;
+      }
+      const enabledCount = state.sourceRows.filter((row) => row.enabled).length;
+      el('sourceAdminList').innerHTML = state.sourceRows.map((row) => {
+        const statusText = row.enabled ? '已启用' : '已停用';
+        const badge = '<span class="source-badge ' + (row.enabled ? 'enabled' : '') + '">' + statusText + '</span>';
+        const action = row.enabled
+          ? '<button class="danger" data-toggle-source="' + escapeHtml(row.code) + '" data-enabled="true"' + (enabledCount <= 1 ? ' disabled' : '') + '>停用</button>'
+          : '<button data-toggle-source="' + escapeHtml(row.code) + '" data-enabled="false">启用</button>';
+        return '<article class="source-row">' +
+          '<div class="source-row-head">' +
+            '<div><h3>' + escapeHtml(row.name) + '</h3><p>' + escapeHtml(row.baseUrl) + '</p></div>' +
+            badge +
+          '</div>' +
+          '<div class="actions">' + action + '</div>' +
+        '</article>';
+      }).join('');
+      document.querySelectorAll('[data-toggle-source]').forEach((btn) => {
+        btn.onclick = () => toggleSource(btn.dataset.toggleSource, btn.dataset.enabled === 'true');
+      });
+    }
+    async function toggleSource(code, currentlyEnabled) {
+      try {
+        await api('/admin/sources/' + encodeURIComponent(code) + '/' + (currentlyEnabled ? 'disable' : 'enable'), { method: 'PATCH' });
+        await loadSources();
+        toast(currentlyEnabled ? '小说网站已停用' : '小说网站已启用');
+      } catch (error) {
+        toast(error.message, true);
+      }
+    }
     async function toggleUser(id, status) {
       try {
         await api('/admin/users/' + id + '/' + (status === 'enabled' ? 'disable' : 'enable'), { method: 'PATCH' });
@@ -3595,10 +4154,12 @@ export class WebController {
     });
     el('searchBtn').onclick = searchBooks;
     el('keywordInput').addEventListener('keydown', (event) => { if (event.key === 'Enter') searchBooks(); });
+    el('clearSearchHistoryBtn').onclick = clearSearchHistory;
     el('backBookshelfBtn').onclick = returnToBookshelfFromReader;
     el('readerTopBackBtn').onclick = returnToBookshelfFromReader;
     el('disabledConfirmBtn').onclick = confirmDisabledLogout;
     el('refreshUsersBtn').onclick = loadUsers;
+    el('refreshSourcesBtn').onclick = loadSources;
     el('prevChapterBtn').onclick = () => goSiblingChapter(-1);
     el('nextChapterBtn').onclick = () => goSiblingChapter(1);
     el('openCatalogBtn').onclick = openCatalog;

@@ -16,21 +16,34 @@ export class NovelsService {
     private readonly quanben: QuanbenAdapter,
   ) {}
 
-  async search(dto: SearchNovelsDto) {
-    const source = dto.source ?? 'quanben';
-    if (source !== 'quanben') {
-      throw new BadRequestException('Unsupported source');
-    }
+  async search(userId: number, dto: SearchNovelsDto) {
     const keyword = dto.keyword.trim();
     if (!keyword) {
       throw new BadRequestException('Keyword is required');
     }
+    await this.store.recordSearchHistory(userId, keyword);
 
-    try {
-      return await this.quanben.search(keyword);
-    } catch {
+    const enabledSources = (await this.store.listNovelSources()).filter((source) => source.enabled);
+    if (enabledSources.length === 0) {
+      throw new ServiceUnavailableException('暂无启用的小说搜索网站');
+    }
+
+    const settled = await Promise.all(
+      enabledSources.map(async (source) => {
+        if (source.code !== 'quanben') {
+          return { ok: true, rows: [] };
+        }
+        try {
+          return { ok: true, rows: await this.quanben.search(keyword) };
+        } catch {
+          return { ok: false, rows: [] };
+        }
+      }),
+    );
+    if (!settled.some((item) => item.ok)) {
       throw new ServiceUnavailableException('搜索源暂时不可用，请稍后再试');
     }
+    return settled.flatMap((item) => item.rows);
   }
 
   async findNovel(id: number) {

@@ -6,8 +6,10 @@ import {
   BookshelfItem,
   Chapter,
   Novel,
+  NovelSource,
   PublicUser,
   ReadingProgress,
+  SearchHistoryItem,
   Session,
   User,
   UserPreferences,
@@ -190,6 +192,34 @@ export class MysqlStore implements OnModuleInit, OnModuleDestroy {
 
   async deleteSessionsForUser(userId: number): Promise<void> {
     await this.pool.execute('DELETE FROM sessions WHERE user_id = ?', [userId]);
+  }
+
+  async listNovelSources(): Promise<NovelSource[]> {
+    const [rows] = await this.pool.execute<DbRow[]>(
+      'SELECT * FROM novel_sources ORDER BY sort_order ASC, code ASC',
+    );
+    return rows.map((row) => this.mapNovelSource(row));
+  }
+
+  async updateNovelSourceEnabled(code: string, enabled: boolean): Promise<NovelSource | undefined> {
+    const [rows] = await this.pool.execute<DbRow[]>('SELECT * FROM novel_sources WHERE code = ?', [code]);
+    if (!rows[0]) {
+      return undefined;
+    }
+    if (!enabled) {
+      const [countRows] = await this.pool.execute<DbRow[]>(
+        'SELECT COUNT(*) AS count FROM novel_sources WHERE enabled = 1',
+      );
+      if (Number(countRows[0]?.count ?? 0) <= 1 && Boolean(Number(rows[0].enabled ?? 0))) {
+        return undefined;
+      }
+    }
+    await this.pool.execute(
+      'UPDATE novel_sources SET enabled = ?, updated_at = CURRENT_TIMESTAMP WHERE code = ?',
+      [enabled ? 1 : 0, code],
+    );
+    const [updatedRows] = await this.pool.execute<DbRow[]>('SELECT * FROM novel_sources WHERE code = ?', [code]);
+    return updatedRows[0] ? this.mapNovelSource(updatedRows[0]) : undefined;
   }
 
   async upsertNovel(input: {
@@ -434,6 +464,49 @@ export class MysqlStore implements OnModuleInit, OnModuleDestroy {
     return progress;
   }
 
+  async listSearchHistory(userId: number, limit = 20): Promise<SearchHistoryItem[]> {
+    const safeLimit = Math.max(1, Math.min(50, Math.floor(Number(limit) || 20)));
+    const [rows] = await this.pool.execute<DbRow[]>(
+      `SELECT *
+       FROM search_history
+       WHERE user_id = ?
+       ORDER BY last_searched_at DESC, id DESC
+       LIMIT ${safeLimit}`,
+      [userId],
+    );
+    return rows.map((row) => this.mapSearchHistory(row));
+  }
+
+  async recordSearchHistory(userId: number, keyword: string): Promise<SearchHistoryItem> {
+    const normalized = keyword.trim();
+    await this.pool.execute(
+      `INSERT INTO search_history (user_id, keyword, search_count, last_searched_at)
+       VALUES (?, ?, 1, CURRENT_TIMESTAMP)
+       ON DUPLICATE KEY UPDATE
+         search_count = search_count + 1,
+         last_searched_at = CURRENT_TIMESTAMP,
+         updated_at = CURRENT_TIMESTAMP`,
+      [userId, normalized],
+    );
+    const [rows] = await this.pool.execute<DbRow[]>(
+      'SELECT * FROM search_history WHERE user_id = ? AND keyword = ?',
+      [userId, normalized],
+    );
+    return this.mapSearchHistory(rows[0]);
+  }
+
+  async deleteSearchHistoryItem(userId: number, id: number): Promise<boolean> {
+    const [result] = await this.pool.execute<ResultSetHeader>(
+      'DELETE FROM search_history WHERE user_id = ? AND id = ?',
+      [userId, id],
+    );
+    return result.affectedRows > 0;
+  }
+
+  async clearSearchHistory(userId: number): Promise<void> {
+    await this.pool.execute('DELETE FROM search_history WHERE user_id = ?', [userId]);
+  }
+
   async getPreferences(userId: number): Promise<UserPreferences> {
     const [rows] = await this.pool.execute<DbRow[]>('SELECT * FROM user_preferences WHERE user_id = ?', [userId]);
     if (rows[0]) {
@@ -574,6 +647,22 @@ export class MysqlStore implements OnModuleInit, OnModuleDestroy {
     await this.ensureSessionLastSeenColumn();
     await this.ensureSessionOnlineSinceColumn();
     await this.pool.query(`
+      CREATE TABLE IF NOT EXISTS novel_sources (
+        code VARCHAR(50) NOT NULL PRIMARY KEY,
+        name VARCHAR(100) NOT NULL,
+        base_url VARCHAR(500) NOT NULL,
+        enabled TINYINT(1) NOT NULL DEFAULT 1,
+        sort_order INT NOT NULL DEFAULT 0,
+        created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    `);
+    await this.pool.execute(
+      `INSERT INTO novel_sources (code, name, base_url, enabled, sort_order)
+       VALUES ('quanben', 'quanben.io', 'https://www.quanben.io/', 1, 10)
+       ON DUPLICATE KEY UPDATE name = VALUES(name), base_url = VALUES(base_url), sort_order = VALUES(sort_order)`,
+    );
+    await this.pool.query(`
       CREATE TABLE IF NOT EXISTS novels (
         id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
         title VARCHAR(255) NOT NULL,
@@ -637,6 +726,20 @@ export class MysqlStore implements OnModuleInit, OnModuleDestroy {
         CONSTRAINT fk_progress_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
         CONSTRAINT fk_progress_novel FOREIGN KEY (novel_id) REFERENCES novels(id) ON DELETE CASCADE,
         CONSTRAINT fk_progress_chapter FOREIGN KEY (chapter_id) REFERENCES chapters(id) ON DELETE SET NULL
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    `);
+    await this.pool.query(`
+      CREATE TABLE IF NOT EXISTS search_history (
+        id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+        user_id BIGINT UNSIGNED NOT NULL,
+        keyword VARCHAR(255) NOT NULL,
+        search_count INT NOT NULL DEFAULT 1,
+        last_searched_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        UNIQUE KEY uniq_user_keyword (user_id, keyword),
+        INDEX idx_search_history_user_last (user_id, last_searched_at),
+        CONSTRAINT fk_search_history_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     `);
     await this.pool.query(`
@@ -709,6 +812,17 @@ export class MysqlStore implements OnModuleInit, OnModuleDestroy {
     };
   }
 
+  private mapNovelSource(row: DbRow): NovelSource {
+    return {
+      code: String(row.code),
+      name: String(row.name),
+      baseUrl: String(row.base_url),
+      enabled: Boolean(Number(row.enabled ?? 0)),
+      sortOrder: Number(row.sort_order ?? 0),
+      updatedAt: this.dateToIso(row.updated_at),
+    };
+  }
+
   private mapChapter(row: DbRow): Chapter {
     return {
       id: Number(row.id),
@@ -748,6 +862,18 @@ export class MysqlStore implements OnModuleInit, OnModuleDestroy {
       scrollPosition: row.scroll_position == null ? undefined : Number(row.scroll_position),
       paragraphIndex: row.paragraph_index == null ? undefined : Number(row.paragraph_index),
       progressPercent: Number(row.progress_percent),
+      updatedAt: this.dateToIso(row.updated_at),
+    };
+  }
+
+  private mapSearchHistory(row: DbRow): SearchHistoryItem {
+    return {
+      id: Number(row.id),
+      userId: Number(row.user_id),
+      keyword: String(row.keyword),
+      searchCount: Number(row.search_count ?? 1),
+      lastSearchedAt: this.dateToIso(row.last_searched_at),
+      createdAt: this.dateToIso(row.created_at),
       updatedAt: this.dateToIso(row.updated_at),
     };
   }

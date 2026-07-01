@@ -56,6 +56,15 @@ export interface Novel {
   updatedAt: string;
 }
 
+export interface NovelSource {
+  code: string;
+  name: string;
+  baseUrl: string;
+  enabled: boolean;
+  sortOrder: number;
+  updatedAt: string;
+}
+
 export interface Chapter {
   id: number;
   novelId: number;
@@ -90,6 +99,16 @@ export interface ReadingProgress {
   scrollPosition?: number;
   paragraphIndex?: number;
   progressPercent: number;
+  updatedAt: string;
+}
+
+export interface SearchHistoryItem {
+  id: number;
+  userId: number;
+  keyword: string;
+  searchCount: number;
+  lastSearchedAt: string;
+  createdAt: string;
   updatedAt: string;
 }
 

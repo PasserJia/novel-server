@@ -9,12 +9,13 @@ Default API prefix: `/api`. The root path `/` serves the built-in single-page we
 The service exposes the full product API surface:
 
 - **auth**: register, login, reset password, logout, heartbeat (session keep-alive), avatar upload, current user
-- **admin**: list users, enable / disable users, reset a user's password to the initial password, delete a user
-- **sources / novels**: authenticated source list, search, novel detail, chapter list, chapter content (fetched from `quanben.io` and cached)
+- **admin**: list users, enable / disable users, reset a user's password to the initial password, delete a user, manage enabled novel sources
+- **sources / novels**: authenticated source list, search through administrator-enabled sources, novel detail, chapter list, chapter content (fetched from enabled source adapters and cached)
 - **bookshelf**: list, add from search, manual add, edit, cover upload, long-press actions in the web client, delete
+- **search history**: per-user search history capsules, full history panel, single-item delete, clear all
 - **reading progress**: read / save per-novel progress
 - **preferences**: read / save bookshelf, bottom-nav and reader theme preferences
-- **web**: built-in SPA with dark glass login/menu/bookstore/admin views and immersive reader mode
+- **web**: built-in SPA with dark glass login/menu/bookstore/admin/source-management views and immersive reader mode
 
 ## Storage
 
@@ -27,7 +28,7 @@ Storage is selected at runtime via `STORE_DRIVER`:
 
 ## Production status
 
-The local code was deployed to Tencent Cloud on 2026-07-01 15:14 CST.
+The local code was deployed to Tencent Cloud on 2026-07-01 18:12 CST. This release adds source management, administrator-enabled source search, per-user search history, and a redesigned bookstore view.
 
 - Cloud app directory: `/home/ubuntu/novel_server`
 - Local directory: code editing and packaging only; do not start the service locally
@@ -37,7 +38,7 @@ The local code was deployed to Tencent Cloud on 2026-07-01 15:14 CST.
 - Disabled legacy entry:
   - old `novel.passerjia.com` config moved to `/etc/nginx/conf.d/novel_server.conf.disabled-202607011410`
 - Runtime data preserved during deployment: `.env`, `node_modules`, `uploads`
-- Pre-deploy backup: `/home/ubuntu/novel_server/.deploy_backups/novel_server_before_20260701151341.tar.gz`
+- Pre-deploy backup: `/home/ubuntu/novel_server/.deploy_backups/novel_server_before_20260701181226.tar.gz`
 
 ## Local checks
 

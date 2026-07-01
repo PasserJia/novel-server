@@ -1,5 +1,7 @@
 import { Controller, Get, Param, ParseIntPipe, Query, UseGuards } from '@nestjs/common';
+import { User } from '../../store/models';
 import { AuthGuard } from '../auth/auth.guard';
+import { CurrentUser } from '../auth/current-user.decorator';
 import { SearchNovelsDto } from './dto';
 import { NovelsService } from './novels.service';
 
@@ -9,8 +11,8 @@ export class NovelsController {
   constructor(private readonly novelsService: NovelsService) {}
 
   @Get('novels/search')
-  search(@Query() dto: SearchNovelsDto) {
-    return this.novelsService.search(dto);
+  search(@CurrentUser() user: User, @Query() dto: SearchNovelsDto) {
+    return this.novelsService.search(user.id, dto);
   }
 
   @Get('novels/:id')

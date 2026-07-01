@@ -60,4 +60,24 @@ export class AdminService {
     }
     return { success: true };
   }
+
+  async listSources() {
+    return this.store.listNovelSources();
+  }
+
+  async setSourceEnabled(code: string, enabled: boolean) {
+    const current = await this.store.listNovelSources();
+    const source = current.find((item) => item.code === code);
+    if (!source) {
+      throw new NotFoundException('Novel source not found');
+    }
+    if (!enabled && source.enabled && current.filter((item) => item.enabled).length <= 1) {
+      throw new BadRequestException('至少需要保留一个启用的小说网站');
+    }
+    const updated = await this.store.updateNovelSourceEnabled(code, enabled);
+    if (!updated) {
+      throw new BadRequestException('至少需要保留一个启用的小说网站');
+    }
+    return updated;
+  }
 }

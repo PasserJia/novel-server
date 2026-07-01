@@ -5,6 +5,7 @@ import { BookshelfModule } from './modules/bookshelf/bookshelf.module';
 import { NovelsModule } from './modules/novels/novels.module';
 import { PreferencesModule } from './modules/preferences/preferences.module';
 import { ReadingProgressModule } from './modules/reading-progress/reading-progress.module';
+import { SearchHistoryModule } from './modules/search-history/search-history.module';
 import { SourcesModule } from './modules/sources/sources.module';
 import { WebModule } from './modules/web/web.module';
 import { StoreModule } from './store/store.module';
@@ -17,6 +18,7 @@ import { StoreModule } from './store/store.module';
     BookshelfModule,
     SourcesModule,
     NovelsModule,
+    SearchHistoryModule,
     ReadingProgressModule,
     PreferencesModule,
     WebModule,
