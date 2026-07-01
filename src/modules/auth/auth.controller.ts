@@ -48,7 +48,7 @@ export class AuthController {
 
   @UseGuards(AuthGuard)
   @Post('avatar')
-  @UseInterceptors(FileInterceptor('file', { limits: { fileSize: 8 * 1024 * 1024 } }))
+  @UseInterceptors(FileInterceptor('file', { limits: { fileSize: 10 * 1024 * 1024 } }))
   setAvatar(
     @CurrentUser() user: User,
     @UploadedFile() file: { buffer: Buffer; mimetype: string; originalname: string; size: number },

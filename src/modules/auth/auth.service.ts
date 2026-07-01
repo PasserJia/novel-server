@@ -16,7 +16,12 @@ const AVATAR_EXT: Record<string, string> = {
   'image/png': '.png',
   'image/gif': '.gif',
   'image/webp': '.webp',
+  'image/heic': '.heic',
+  'image/heif': '.heif',
+  'image/avif': '.avif',
 };
+
+const MAX_AVATAR_SIZE = 10 * 1024 * 1024;
 
 @Injectable()
 export class AuthService {
@@ -84,10 +89,10 @@ export class AuthService {
     }
     const ext = AVATAR_EXT[file.mimetype];
     if (!ext) {
-      throw new BadRequestException('只支持 JPG / PNG / GIF / WEBP 图片');
+      throw new BadRequestException('只支持 JPG / PNG / GIF / WEBP / HEIC / HEIF / AVIF 图片');
     }
-    if (file.size > 5 * 1024 * 1024) {
-      throw new BadRequestException('图片不能超过 5MB');
+    if (file.size > MAX_AVATAR_SIZE) {
+      throw new BadRequestException('图片不能超过 10MB');
     }
 
     const uploadsDir = join(process.cwd(), 'uploads');

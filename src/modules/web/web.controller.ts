@@ -1950,6 +1950,16 @@ export class WebController {
       animation: shelfPop .55s var(--ease-out) both;
     }
     .shelf-cover img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .shelf-cover.has-image {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      max-width: none;
+      aspect-ratio: auto;
+      border-radius: 0;
+      box-shadow: none;
+    }
     .shelf-cover.is-text {
       display: flex; align-items: center; justify-content: center; text-align: center;
       padding: 8% 12%;
@@ -1971,11 +1981,17 @@ export class WebController {
     }
     .shelf-info {
       position: absolute; z-index: 3;
-      right: 0; bottom: 0;
+      right: 22px; bottom: calc(28px + env(safe-area-inset-bottom));
       max-width: min(82%, 560px);
-      padding: 0 22px calc(34px + env(safe-area-inset-bottom));
+      padding: 18px 20px;
       text-align: right;
       color: #fff;
+      background: rgba(22, 18, 14, .48);
+      border: 1px solid rgba(255, 255, 255, .16);
+      border-radius: 18px;
+      box-shadow: 0 18px 50px rgba(0, 0, 0, .36), inset 0 1px 0 rgba(255, 255, 255, .08);
+      backdrop-filter: saturate(145%) blur(18px);
+      -webkit-backdrop-filter: saturate(145%) blur(18px);
     }
     .shelf-title {
       font-family: var(--font-display);
@@ -2281,6 +2297,7 @@ export class WebController {
       overscroll-behavior-y: contain;
       scroll-behavior: auto;
       touch-action: pan-y;
+      -webkit-overflow-scrolling: touch;
     }
     .shelf-slide { scroll-snap-stop: always; }
 
@@ -2297,10 +2314,10 @@ export class WebController {
       will-change: auto;
     }
     .shelf-info {
-      right: 0; left: auto; bottom: 0;
+      right: 22px; left: auto; bottom: calc(28px + env(safe-area-inset-bottom));
       text-align: right;
       max-width: min(82%, 620px);
-      padding: 0 26px calc(30px + env(safe-area-inset-bottom)) 18px;
+      padding: 18px 20px;
     }
     .shelf-meta { margin-top: 6px; color: rgba(255,255,255,.8); }
     .shelf-hint {
@@ -2394,6 +2411,13 @@ export class WebController {
       #drawer .userbox #sideUsername { font-size: 20px; }
       .side-avatar { width: 54px; height: 54px; }
       .glass-sheet-item { height: 56px; font-size: 17px; }
+      .shelf-info {
+        right: 14px;
+        bottom: calc(18px + env(safe-area-inset-bottom));
+        max-width: calc(100vw - 28px);
+        padding: 14px 16px;
+        border-radius: 16px;
+      }
     }
   </style>
 </head>
@@ -2680,6 +2704,10 @@ export class WebController {
       shelfStepLock: false,
       shelfTouchStartY: 0,
       shelfTouchHandled: false,
+      shelfWheelDelta: 0,
+      shelfWheelTimer: null,
+      shelfScrollTimer: null,
+      shelfLastStepAt: 0,
       preferences: { readerTheme: { fontSize: 18, night: false, eye: false } },
       saveTimer: null,
       sessionTimer: null,
@@ -2787,7 +2815,13 @@ export class WebController {
       try {
         const res = await fetch('/api' + path, Object.assign({}, fetchOpts, { headers }));
         const text = await res.text();
-        const data = text ? JSON.parse(text) : null;
+        const contentType = res.headers.get('content-type') || '';
+        let data = null;
+        if (text && contentType.includes('application/json')) {
+          data = JSON.parse(text);
+        } else if (text) {
+          data = { message: res.ok ? text : '服务返回了非 JSON 响应，请检查图片格式或文件大小' };
+        }
         if (!res.ok) {
           const message = Array.isArray(data && data.message) ? data.message.join('；') : ((data && data.message) || (data && data.error) || '请求失败');
           if (res.status === 401 && state.token) {
@@ -3115,7 +3149,7 @@ export class WebController {
         if (hasImage) {
           const url = encodeURI(book.customCoverUrl);
           bgStyle = ' style="background-image:url(&quot;' + url + '&quot;)"';
-          cover = '<div class="shelf-cover" data-idx="' + index + '"><img src="' + escapeHtml(book.customCoverUrl) + '" alt="' + escapeHtml(novel.title) + '" /></div>';
+          cover = '<div class="shelf-cover has-image" data-idx="' + index + '"><img src="' + escapeHtml(book.customCoverUrl) + '" alt="' + escapeHtml(novel.title) + '" /></div>';
         } else {
           cover = '<div class="shelf-cover is-text ' + (isManual ? 'manual' : 'quanben') + '" data-idx="' + index + '">' + escapeHtml(novel.title) + '</div>';
         }
@@ -3158,15 +3192,25 @@ export class WebController {
       slides.forEach((slide, i) => slide.classList.toggle('is-active', i === index));
       dots.forEach((dot, i) => dot.classList.toggle('active', i === index));
     }
+    function syncShelfFromScroll() {
+      const deck = el('bookshelfList');
+      const slides = Array.from(deck.querySelectorAll('.shelf-slide'));
+      if (!slides.length) return;
+      const index = Math.min(slides.length - 1, Math.max(0, Math.round(deck.scrollTop / Math.max(1, deck.clientHeight))));
+      state.shelfIndex = index;
+      updateShelfActive(index);
+    }
     function shelfStep(dir) {
       const deck = el('bookshelfList');
       const slides = Array.from(deck.querySelectorAll('.shelf-slide'));
       if (slides.length < 2) return;
       const current = Math.min(slides.length - 1, Math.max(0, state.shelfIndex || 0));
       const target = Math.min(slides.length - 1, Math.max(0, current + dir));
-      if (target === current || state.shelfStepLock) return;
+      const now = Date.now();
+      if (target === current || state.shelfStepLock || now - state.shelfLastStepAt < 420) return;
       state.shelfIndex = target;
       state.shelfStepLock = true;
+      state.shelfLastStepAt = now;
       const top = target * (deck.clientHeight || 1);
       deck.scrollTo({ top, behavior: 'auto' });
       updateShelfActive(target);
@@ -3177,6 +3221,19 @@ export class WebController {
         state.shelfIndex = target;
         updateShelfActive(state.shelfIndex);
       }, 120);
+    }
+    function onShelfWheel(event) {
+      if (!document.body.classList.contains('shelf-immersive')) return;
+      if (document.body.classList.contains('drawer-open')) return;
+      if (Math.abs(event.deltaY) < 8) return;
+      event.preventDefault();
+      state.shelfWheelDelta += event.deltaY;
+      clearTimeout(state.shelfWheelTimer);
+      state.shelfWheelTimer = setTimeout(() => { state.shelfWheelDelta = 0; }, 180);
+      if (Math.abs(state.shelfWheelDelta) < 95) return;
+      const dir = state.shelfWheelDelta > 0 ? 1 : -1;
+      state.shelfWheelDelta = 0;
+      shelfStep(dir);
     }
     async function deleteBook(id) {
       const ok = await glassConfirm({ title: '删除这本书', text: '确定从书架删除？删除后可在书城重新加入。', okText: '删除', danger: true });
@@ -3525,28 +3582,11 @@ export class WebController {
     el('drawerCloseBtn').onclick = closeDrawer;
     el('drawerScrim').onclick = closeDrawer;
     el('drawerLogoutBtn').onclick = () => { closeDrawer(); logout(); };
-    el('bookshelfList').addEventListener('wheel', (event) => {
-      if (!document.body.classList.contains('shelf-immersive')) return;
-      if (document.body.classList.contains('drawer-open')) return;
-      if (Math.abs(event.deltaY) < 10) return;
-      event.preventDefault();
-      shelfStep(event.deltaY > 0 ? 1 : -1);
-    }, { passive: false });
-    el('bookshelfList').addEventListener('touchstart', (event) => {
-      state.shelfTouchStartY = event.touches[0]?.clientY || 0;
-      state.shelfTouchHandled = false;
+    el('bookshelfList').addEventListener('wheel', onShelfWheel, { passive: false });
+    el('bookshelfList').addEventListener('scroll', () => {
+      clearTimeout(state.shelfScrollTimer);
+      state.shelfScrollTimer = setTimeout(syncShelfFromScroll, 90);
     }, { passive: true });
-    el('bookshelfList').addEventListener('touchmove', (event) => {
-      if (!document.body.classList.contains('shelf-immersive')) return;
-      if (document.body.classList.contains('drawer-open')) return;
-      if (state.shelfTouchHandled) return;
-      const y = event.touches[0]?.clientY || 0;
-      const delta = state.shelfTouchStartY - y;
-      if (Math.abs(delta) < 18) return;
-      event.preventDefault();
-      state.shelfTouchHandled = true;
-      shelfStep(delta > 0 ? 1 : -1);
-    }, { passive: false });
     document.addEventListener('keydown', (event) => {
       if (!document.body.classList.contains('shelf-immersive')) return;
       if (document.body.classList.contains('drawer-open')) return;

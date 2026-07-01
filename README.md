@@ -27,7 +27,7 @@ Storage is selected at runtime via `STORE_DRIVER`:
 
 ## Production status
 
-The local code was deployed to Tencent Cloud on 2026-07-01 14:32 CST.
+The local code was deployed to Tencent Cloud on 2026-07-01 15:14 CST.
 
 - Cloud app directory: `/home/ubuntu/novel_server`
 - Local directory: code editing and packaging only; do not start the service locally
@@ -37,7 +37,7 @@ The local code was deployed to Tencent Cloud on 2026-07-01 14:32 CST.
 - Disabled legacy entry:
   - old `novel.passerjia.com` config moved to `/etc/nginx/conf.d/novel_server.conf.disabled-202607011410`
 - Runtime data preserved during deployment: `.env`, `node_modules`, `uploads`
-- Pre-deploy backup: `/home/ubuntu/novel_server/.deploy_backups/novel_server_before_20260701143117.tar.gz`
+- Pre-deploy backup: `/home/ubuntu/novel_server/.deploy_backups/novel_server_before_20260701151341.tar.gz`
 
 ## Local checks
 
