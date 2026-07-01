@@ -1258,6 +1258,41 @@ export class WebController {
       object-fit: cover;
       border-radius: 6px;
     }
+    /* ===== 书架卡片放大 + 让用户上传的封面作主角 ===== */
+    #bookshelfList .book-row {
+      grid-template-columns: 110px 1fr auto;
+      gap: 20px;
+      padding: 18px;
+    }
+    #bookshelfList .cover {
+      width: 110px;
+      height: 160px;
+      border-radius: 10px;
+    }
+    #bookshelfList .book-title {
+      font-size: 19px;
+    }
+    /* 有真实上传封面时:去掉书脊高光线、深色硬边框与内边距,让照片满铺、像一张悬浮的相片 */
+    .cover.has-image {
+      padding: 0;
+      border: 0;
+      background: var(--panel-alt);
+      border-radius: 10px;
+      box-shadow:
+        0 0 0 1px rgba(28, 24, 16, .06),
+        0 10px 24px rgba(28, 24, 16, .18);
+    }
+    .cover.has-image::after { content: none; }
+    .cover.has-image img {
+      border-radius: inherit;
+      display: block;
+    }
+    .book-row:hover .cover.has-image {
+      transform: translateY(-3px);
+      box-shadow:
+        0 0 0 1px rgba(28, 24, 16, .08),
+        0 18px 40px rgba(28, 24, 16, .26);
+    }
     .book-main {
       min-width: 0;
       display: grid;
@@ -1621,6 +1656,17 @@ export class WebController {
         justify-content: flex-start;
       }
       .settings-grid, .form-row { grid-template-columns: 1fr; }
+      /* 书架卡片在手机上同样放大,封面更醒目 */
+      #bookshelfList .book-row {
+        grid-template-columns: 88px 1fr;
+        gap: 16px;
+        padding: 14px;
+      }
+      #bookshelfList .cover {
+        width: 88px;
+        height: 126px;
+      }
+      #bookshelfList .book-title { font-size: 18px; }
     }
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after {
@@ -1687,10 +1733,12 @@ export class WebController {
         box-shadow: 0 -12px 34px rgba(28, 24, 16, .12);
       }
       .nav {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
+        display: flex;
         gap: 8px;
       }
       .nav button {
+        flex: 1 1 0;
+        min-width: 0;
         height: 46px;
         justify-content: center;
         text-align: center;
@@ -1786,6 +1834,228 @@ export class WebController {
       background: rgba(231, 241, 224, .85);
       border-color: rgba(0, 0, 0, .06);
     }
+
+    /* ========================================================= */
+    /* 沉浸式书架(全屏封面 + 上下滑动)与抽屉收纳导航            */
+    /* 追加在最后,凭源码顺序/ID 优先级覆盖旧栅格与底栏样式。      */
+    /* ========================================================= */
+    #appView { grid-template-columns: 1fr; }     /* 抽屉脱离文档流,内容区独占整行 */
+
+    /* 浮动菜单按钮(登录后才出现,阅读时隐藏) */
+    #menuBtn, #drawerScrim { display: none; }
+    body.logged-in:not(.reader-mode) #menuBtn {
+      display: flex;
+      position: fixed;
+      top: calc(14px + env(safe-area-inset-top));
+      left: 14px;
+      z-index: 50;
+      width: 44px; height: 44px;
+      align-items: center; justify-content: center;
+      border-radius: 13px;
+      font-size: 18px; line-height: 1;
+      color: #fff;
+      background: rgba(22, 18, 12, .42);
+      border: 1px solid rgba(255, 255, 255, .22);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, .28);
+      cursor: pointer;
+      transition: transform .2s var(--ease), background .2s var(--ease);
+    }
+    body.logged-in:not(.reader-mode) #menuBtn:hover { transform: translateY(-1px); background: rgba(22, 18, 12, .6); }
+    /* 书城/用户页:菜单按钮同样保持深色玻璃态,和深色 topbar 协调;给顶栏留位 */
+    body.logged-in:not(.shelf-immersive):not(.reader-mode) .topbar { padding-left: 70px; }
+
+    /* 书城/用户页:隐藏顶栏登录信息和退出按钮,只显示 logo */
+    body.logged-in:not(.shelf-immersive):not(.reader-mode) .session { display: none; }
+
+    /* 书架页:隐藏顶栏 + 占满整屏 */
+    body.shelf-immersive .topbar { display: none; }
+    body.shelf-immersive .app-shell { height: 100vh; height: 100dvh; }
+
+    /* 抽屉(由原 sidebar 改造,用 ID 覆盖原左栏/底栏样式) */
+    #drawer {
+      position: fixed;
+      top: 0; left: 0; bottom: 0; right: auto;
+      width: min(82vw, 296px);
+      z-index: 60;
+      transform: translateX(-100%);
+      transition: transform .34s var(--ease-out);
+      border: 0;
+      border-right: 1px solid var(--line);
+      border-radius: 0 20px 20px 0;
+      box-shadow: var(--shadow-lg);
+      padding: calc(18px + env(safe-area-inset-top)) 16px calc(18px + env(safe-area-inset-bottom));
+      gap: 16px;
+    }
+    body.drawer-open #drawer { transform: translateX(0); }
+    #drawer .drawer-head { display: flex; align-items: center; justify-content: space-between; }
+    #drawer .drawer-head strong { font-family: var(--font-display); font-size: 20px; letter-spacing: .02em; }
+    #drawer .userbox { display: block; }
+    #drawer .nav { display: flex; flex-direction: column; gap: 6px; }
+    #drawer .nav button { width: 100%; height: 46px; justify-content: flex-start; text-align: left; border-radius: 12px; background: transparent; }
+    #drawer .nav button.active { background: var(--black); color: #fff; }
+    #drawer .nav small { display: inline; }
+    #drawerLogoutBtn { margin-top: auto; width: 100%; }
+    #drawerScrim {
+      position: fixed; inset: 0; z-index: 55;
+      background: rgba(8, 6, 4, .46);
+      backdrop-filter: blur(2px);
+      -webkit-backdrop-filter: blur(2px);
+      opacity: 0; pointer-events: none;
+      transition: opacity .3s var(--ease);
+    }
+    body.drawer-open #drawerScrim { display: block; opacity: 1; pointer-events: auto; }
+
+    /* 书架全屏滑动 deck */
+    body.shelf-immersive #bookshelfView {
+      position: fixed; inset: 0; z-index: 1;
+      max-width: none; margin: 0; padding: 0;
+      display: block; animation: none;
+    }
+    .shelf-deck {
+      height: 100%;
+      overflow-y: auto;
+      scroll-snap-type: y mandatory;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+      background: #0c0a08;
+    }
+    .shelf-deck::-webkit-scrollbar { display: none; }
+    .shelf-slide {
+      position: relative;
+      height: 100%;
+      scroll-snap-align: start;
+      scroll-snap-stop: always;
+      overflow: hidden;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .shelf-bg {
+      position: absolute; inset: -10%;
+      z-index: 0;
+      background-size: cover; background-position: center;
+      filter: blur(36px) brightness(.46) saturate(1.2);
+      transform: scale(1.08);
+    }
+    .shelf-slide.is-text .shelf-bg { filter: brightness(.62) saturate(1); }
+    .shelf-cover {
+      position: relative; z-index: 1;
+      aspect-ratio: 2 / 3;
+      height: min(72vh, 132vw);
+      max-width: 90vw;
+      border-radius: 14px;
+      overflow: hidden;
+      background: var(--panel-alt);
+      box-shadow: 0 34px 80px rgba(0, 0, 0, .55), 0 0 0 1px rgba(255, 255, 255, .1);
+      animation: shelfPop .55s var(--ease-out) both;
+    }
+    .shelf-cover img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .shelf-cover.is-text {
+      display: flex; align-items: center; justify-content: center; text-align: center;
+      padding: 8% 12%;
+      color: #f7f1e6;
+      font-family: var(--font-serif);
+      font-size: clamp(20px, 5vw, 34px);
+      font-weight: 650; line-height: 1.4;
+      background: linear-gradient(150deg, #6b4f29, #3f2d16);
+    }
+    .shelf-cover.is-text.manual { background: linear-gradient(150deg, #2f3d44, #1c2429); }
+    @keyframes shelfPop { from { opacity: 0; transform: scale(.96) translateY(10px); } to { opacity: 1; transform: none; } }
+
+    /* 压暗渐变:底部 + 右侧,衬托右下角信息 */
+    .shelf-slide::after {
+      content: ""; position: absolute; inset: 0; z-index: 2; pointer-events: none;
+      background:
+        linear-gradient(to top, rgba(6, 4, 2, .78), rgba(6, 4, 2, .12) 32%, transparent 52%),
+        linear-gradient(to left, rgba(6, 4, 2, .5), transparent 46%);
+    }
+    .shelf-info {
+      position: absolute; z-index: 3;
+      right: 0; bottom: 0;
+      max-width: min(82%, 560px);
+      padding: 0 22px calc(34px + env(safe-area-inset-bottom));
+      text-align: right;
+      color: #fff;
+    }
+    .shelf-title {
+      font-family: var(--font-display);
+      font-size: clamp(22px, 5.4vw, 34px);
+      line-height: 1.2;
+      text-shadow: 0 2px 18px rgba(0, 0, 0, .6);
+      overflow-wrap: anywhere;
+    }
+    .shelf-meta {
+      margin-top: 8px;
+      font-size: 13px; line-height: 1.6;
+      color: rgba(255, 255, 255, .82);
+      text-shadow: 0 1px 10px rgba(0, 0, 0, .55);
+    }
+    .shelf-actions {
+      margin-top: 14px;
+      display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end;
+    }
+    .shelf-actions button { backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
+    .shelf-actions .ghost-on-dark {
+      background: rgba(255, 255, 255, .14);
+      color: #fff;
+      border: 1px solid rgba(255, 255, 255, .28);
+      min-width: 0;
+      width: 38px;
+      height: 38px;
+      padding: 0;
+      font-size: 18px;
+      line-height: 1;
+    }
+    .shelf-actions .ghost-on-dark:hover { background: rgba(255, 255, 255, .24); }
+    .shelf-icon-btn svg {
+      width: 20px;
+      height: 20px;
+      display: block;
+      margin: 0 auto;
+    }
+    .shelf-read {
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      color: #fff; border: 0;
+      font-weight: 650;
+      box-shadow: 0 8px 22px rgba(15, 118, 110, .4);
+    }
+
+    /* 位置圆点(左侧居中) */
+    .shelf-dots {
+      position: fixed; z-index: 4;
+      left: 12px; top: 50%; transform: translateY(-50%);
+      display: flex; flex-direction: column; gap: 8px;
+      pointer-events: none;
+    }
+    body:not(.shelf-immersive) .shelf-dots { display: none; }
+    .shelf-dots i {
+      width: 6px; height: 6px; border-radius: 999px;
+      background: rgba(255, 255, 255, .4);
+      transition: height .25s var(--ease), background .25s var(--ease);
+    }
+    .shelf-dots i.active { background: #fff; height: 18px; }
+
+    /* 空书架 */
+    .shelf-empty {
+      position: relative; z-index: 3;
+      text-align: center; color: #f3ede1;
+      padding: 0 28px; max-width: 420px;
+    }
+    .shelf-empty h2 { font-family: var(--font-display); font-size: 24px; margin-bottom: 10px; }
+    .shelf-empty p { color: rgba(255, 255, 255, .78); line-height: 1.7; margin-bottom: 18px; }
+
+    /* 手机端:清晰封面满铺到边,更贴近全屏沉浸 */
+    @media (max-width: 920px) {
+      .shelf-cover {
+        position: absolute; inset: 0;
+        height: auto; max-width: none;
+        border-radius: 0;
+        box-shadow: none;
+        animation: fadeIn .4s var(--ease) both;
+      }
+      .shelf-cover.is-text { padding: 18% 14%; }
+      .shelf-dots { left: 8px; }
+    }
   </style>
 </head>
 <body>
@@ -1866,7 +2136,13 @@ export class WebController {
   </section>
 
   <section id="appView" class="app-shell hidden">
-    <aside class="sidebar">
+    <button id="menuBtn" type="button" aria-label="菜单">☰</button>
+    <div id="drawerScrim"></div>
+    <aside class="sidebar" id="drawer">
+      <div class="drawer-head">
+        <strong>书架</strong>
+        <button id="drawerCloseBtn" class="ghost" type="button" aria-label="关闭">✕</button>
+      </div>
       <div class="userbox">
         <strong id="sideUsername">-</strong>
         <span id="sideRole">-</span>
@@ -1874,23 +2150,15 @@ export class WebController {
       <nav class="nav">
         <button class="active" data-view="bookshelf"><small>01</small>书架</button>
         <button data-view="bookstore"><small>02</small>书城</button>
-        <button data-view="users"><small>03</small>用户</button>
+        <button data-view="users"><small>03</small>用户管理</button>
       </nav>
+      <button id="drawerLogoutBtn" class="secondary" type="button">退出登录</button>
     </aside>
 
     <main class="content">
       <div id="bookshelfView" class="view">
-        <div class="view-head">
-          <div>
-            <h1>我的书架</h1>
-            <p>一行一本书，支持继续阅读、删除和阅读进度恢复。</p>
-          </div>
-          <div class="toolbar">
-            <button id="refreshBookshelfBtn" class="secondary">刷新</button>
-          </div>
-        </div>
-        <div id="bookshelfList" class="book-list"></div>
-        <div id="bookshelfPager" class="pager hidden"></div>
+        <div id="bookshelfList" class="shelf-deck"></div>
+        <div id="shelfDots" class="shelf-dots" aria-hidden="true"></div>
       </div>
 
       <div id="bookstoreView" class="view hidden">
@@ -2037,6 +2305,7 @@ export class WebController {
       nextNum: null,
       catalogRendered: 0,
       pendingCoverId: null,
+      shelfObserver: null,
       preferences: { readerTheme: { fontSize: 18, night: false, eye: false } },
       saveTimer: null,
       sessionTimer: null,
@@ -2229,15 +2498,19 @@ export class WebController {
       el('authView').classList.toggle('hidden', isLoggedIn);
       el('appView').classList.toggle('hidden', !isLoggedIn);
       el('topLogoutBtn').classList.toggle('hidden', !isLoggedIn);
+      document.body.classList.toggle('logged-in', isLoggedIn);
       if (!isLoggedIn) {
         stopSessionWatch();
         document.body.classList.remove('reader-mode');
+        document.body.classList.remove('shelf-immersive');
+        closeDrawer();
       }
       if (state.user) {
         const roleText = state.user.role === 'admin' ? '管理员' : '普通用户';
         el('sessionText').textContent = state.user.username + ' / ' + roleText;
         el('sideUsername').textContent = state.user.nickname || state.user.username;
         el('sideRole').textContent = roleText + ' · ' + state.user.status;
+        document.querySelector('[data-view="users"]').classList.toggle('hidden', state.user.role !== 'admin');
       } else {
         el('sessionText').textContent = '未登录';
       }
@@ -2246,6 +2519,8 @@ export class WebController {
       if (name !== 'reader') saveProgress(false);
       document.body.classList.toggle('reader-mode', name === 'reader');
       document.body.classList.toggle('reader-chrome-hidden', name === 'reader');
+      document.body.classList.toggle('shelf-immersive', name === 'bookshelf');
+      closeDrawer();
       document.querySelectorAll('[data-view]').forEach((btn) => btn.classList.toggle('active', btn.dataset.view === name));
       ['bookshelf', 'bookstore', 'reader', 'users'].forEach((view) => {
         el(view + 'View').classList.toggle('hidden', view !== name);
@@ -2253,6 +2528,8 @@ export class WebController {
       if (name === 'bookshelf') loadBookshelf();
       if (name === 'users') loadUsers();
     }
+    function openDrawer() { document.body.classList.add('drawer-open'); }
+    function closeDrawer() { document.body.classList.remove('drawer-open'); }
     async function login() {
       try {
         const data = await api('/auth/login', {
@@ -2340,6 +2617,7 @@ export class WebController {
       try {
         state.user = await api('/auth/me');
         showApp(true);
+        showView('bookshelf');
         startSessionWatch();
         await loadPreferences();
         await loadBookshelf();
@@ -2398,56 +2676,89 @@ export class WebController {
         input.value = '';
       }
     }
-    async function loadBookshelf(resetPage) {
+    async function loadBookshelf() {
       try {
         state.books = await api('/bookshelf');
-        if (resetPage) state.bookshelfPage = 1;
         renderBookshelf();
       } catch (error) {
-        el('bookshelfList').innerHTML = '<div class="empty">' + escapeHtml(error.message) + '</div>';
-        el('bookshelfPager').classList.add('hidden');
+        el('bookshelfList').innerHTML = '<section class="shelf-slide is-text"><div class="shelf-bg"></div><div class="shelf-empty"><p>' + escapeHtml(error.message) + '</p></div></section>';
+        el('shelfDots').innerHTML = '';
       }
     }
     function renderBookshelf() {
+      const deck = el('bookshelfList');
+      if (state.shelfObserver) { state.shelfObserver.disconnect(); state.shelfObserver = null; }
       if (!state.books.length) {
-        el('bookshelfList').innerHTML = '<div class="empty">书架还是空的。去书城搜索喜欢的小说，加入书架就能开始阅读。</div>';
-        el('bookshelfPager').classList.add('hidden');
+        deck.innerHTML =
+          '<section class="shelf-slide is-text">' +
+            '<div class="shelf-bg"></div>' +
+            '<div class="shelf-empty">' +
+              '<h2>书架还是空的</h2>' +
+              '<p>去书城搜一本喜欢的小说，加入书架，就能在这里沉浸式上下翻阅。</p>' +
+              '<button class="shelf-read" data-go-store>去书城逛逛</button>' +
+            '</div>' +
+          '</section>';
+        el('shelfDots').innerHTML = '';
+        const goBtn = deck.querySelector('[data-go-store]');
+        if (goBtn) goBtn.onclick = () => showView('bookstore');
         return;
       }
-      state.bookshelfPage = normalizePage(state.books.length, state.bookshelfPage, state.bookshelfPageSize);
-      const start = (state.bookshelfPage - 1) * state.bookshelfPageSize;
-      const pageBooks = state.books.slice(start, start + state.bookshelfPageSize);
-      el('bookshelfList').innerHTML = pageBooks.map((book, index) => {
-        const bookIndex = start + index;
+      deck.innerHTML = state.books.map((book, index) => {
         const novel = book.novel;
-        const coverClass = novel.sourceCode === 'quanben' ? 'quanben' : 'manual';
-        const coverInner = book.customCoverUrl
-          ? '<img src="' + escapeHtml(book.customCoverUrl) + '" alt="' + escapeHtml(novel.title) + '" />'
-          : escapeHtml(novel.title);
-        return '<div class="book-row">' +
-          '<div class="cover ' + coverClass + '">' + coverInner + '</div>' +
-          '<div class="book-main">' +
-          '<div class="book-title">' + escapeHtml(book.customTitle || novel.title) + '</div>' +
-          '<div class="book-meta">作者：' + escapeHtml(novel.author) + ' · 来源：' + escapeHtml(novel.sourceCode) + '<br>加入时间：' + escapeHtml(fmtTime(book.addedAt)) + '</div>' +
+        const hasImage = !!book.customCoverUrl;
+        const isManual = novel.sourceCode !== 'quanben';
+        const title = escapeHtml(book.customTitle || novel.title);
+        let bgStyle = '';
+        let cover;
+        if (hasImage) {
+          const url = encodeURI(book.customCoverUrl);
+          bgStyle = ' style="background-image:url(&quot;' + url + '&quot;)"';
+          cover = '<div class="shelf-cover"><img src="' + escapeHtml(book.customCoverUrl) + '" alt="' + escapeHtml(novel.title) + '" /></div>';
+        } else {
+          cover = '<div class="shelf-cover is-text ' + (isManual ? 'manual' : 'quanben') + '">' + escapeHtml(novel.title) + '</div>';
+        }
+        return '<section class="shelf-slide' + (hasImage ? '' : ' is-text') + '">' +
+          '<div class="shelf-bg"' + bgStyle + '></div>' +
+          cover +
+          '<div class="shelf-info">' +
+            '<div class="shelf-title">' + title + '</div>' +
+            '<div class="shelf-meta">作者：' + escapeHtml(novel.author) + ' · 来源：' + escapeHtml(novel.sourceCode) + '<br>加入时间：' + escapeHtml(fmtTime(book.addedAt)) + '</div>' +
+            '<div class="shelf-actions">' +
+              '<button class="shelf-read" data-read="' + index + '">阅读</button>' +
+              '<button class="ghost-on-dark shelf-icon-btn" data-cover="' + book.id + '" title="换封面" aria-label="换封面"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></button>' +
+              '<button class="ghost-on-dark shelf-icon-btn" data-delete="' + book.id + '" title="删除" aria-label="删除"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg></button>' +
+            '</div>' +
           '</div>' +
-          '<div class="actions">' +
-          '<button data-read="' + bookIndex + '">阅读</button>' +
-          '<button class="secondary" data-cover="' + book.id + '">换封面</button>' +
-          '<button class="danger" data-delete="' + book.id + '">删除</button>' +
-          '</div>' +
-          '</div>';
+        '</section>';
       }).join('');
-      document.querySelectorAll('[data-read]').forEach((btn) => btn.onclick = () => openReader(state.books[Number(btn.dataset.read)]));
-      document.querySelectorAll('[data-cover]').forEach((btn) => btn.onclick = () => {
+      el('shelfDots').innerHTML = state.books.map((_, i) => '<i' + (i === 0 ? ' class="active"' : '') + '></i>').join('');
+      deck.querySelectorAll('[data-read]').forEach((btn) => btn.onclick = () => openReader(state.books[Number(btn.dataset.read)]));
+      deck.querySelectorAll('[data-cover]').forEach((btn) => btn.onclick = () => {
         state.pendingCoverId = Number(btn.dataset.cover);
         el('coverFileInput').value = '';
         el('coverFileInput').click();
       });
-      document.querySelectorAll('[data-delete]').forEach((btn) => btn.onclick = () => deleteBook(Number(btn.dataset.delete)));
-      renderPager('bookshelfPager', state.books.length, state.bookshelfPage, state.bookshelfPageSize, (page) => {
-        state.bookshelfPage = page;
-        renderBookshelf();
-      });
+      deck.querySelectorAll('[data-delete]').forEach((btn) => btn.onclick = () => deleteBook(Number(btn.dataset.delete)));
+      const slides = Array.from(deck.querySelectorAll('.shelf-slide'));
+      const dots = Array.from(el('shelfDots').children);
+      state.shelfObserver = new IntersectionObserver((entries) => {
+        entries.forEach((e) => {
+          if (e.isIntersecting) {
+            const idx = slides.indexOf(e.target);
+            dots.forEach((d, i) => d.classList.toggle('active', i === idx));
+          }
+        });
+      }, { root: deck, threshold: 0.6 });
+      slides.forEach((s) => state.shelfObserver.observe(s));
+    }
+    function shelfStep(dir) {
+      const deck = el('bookshelfList');
+      const slides = Array.from(deck.querySelectorAll('.shelf-slide'));
+      if (slides.length < 2) return;
+      const h = deck.clientHeight || 1;
+      const cur = Math.round(deck.scrollTop / h);
+      const target = Math.min(slides.length - 1, Math.max(0, cur + dir));
+      slides[target].scrollIntoView({ behavior: 'smooth' });
     }
     async function deleteBook(id) {
       if (!confirm('确认从书架删除这本书？')) return;
@@ -2678,6 +2989,7 @@ export class WebController {
           const actions = row.role === 'admin'
             ? '<span class="muted">管理员</span>'
             : '<button class="secondary" data-toggle-user="' + row.id + '" data-status="' + row.status + '">' + (row.status === 'enabled' ? '禁用' : '启用') + '</button>' +
+              '<button class="secondary" data-reset-user="' + row.id + '" data-username="' + escapeHtml(row.username) + '">重置密码</button>' +
               '<button class="danger" data-delete-user="' + row.id + '" data-username="' + escapeHtml(row.username) + '">删除</button>';
           return '<div class="user-row" style="grid-template-columns:1fr auto">' +
             '<div class="book-main">' +
@@ -2688,6 +3000,7 @@ export class WebController {
             '</div>';
         }).join('');
         document.querySelectorAll('[data-toggle-user]').forEach((btn) => btn.onclick = () => toggleUser(Number(btn.dataset.toggleUser), btn.dataset.status));
+        document.querySelectorAll('[data-reset-user]').forEach((btn) => btn.onclick = () => resetUserPassword(Number(btn.dataset.resetUser), btn.dataset.username || '该用户'));
         document.querySelectorAll('[data-delete-user]').forEach((btn) => btn.onclick = () => deleteUser(Number(btn.dataset.deleteUser), btn.dataset.username || '该用户'));
       } catch (error) {
         el('userList').innerHTML = '<div class="empty">' + escapeHtml(error.message) + '</div>';
@@ -2698,6 +3011,15 @@ export class WebController {
         await api('/admin/users/' + id + '/' + (status === 'enabled' ? 'disable' : 'enable'), { method: 'PATCH' });
         await loadUsers();
         toast('用户状态已更新');
+      } catch (error) {
+        toast(error.message, true);
+      }
+    }
+    async function resetUserPassword(id, username) {
+      if (!confirm('确认将用户“' + username + '”的密码重置为初始密码 guest2026？该用户会被强制登出。')) return;
+      try {
+        await api('/admin/users/' + id + '/reset-password', { method: 'PATCH' });
+        toast('密码已重置为初始密码 guest2026');
       } catch (error) {
         toast(error.message, true);
       }
@@ -2723,7 +3045,16 @@ export class WebController {
     el('registerBtn').onclick = registerUser;
     el('resetBtn').onclick = resetPassword;
     el('topLogoutBtn').onclick = logout;
-    el('refreshBookshelfBtn').onclick = loadBookshelf;
+    el('menuBtn').onclick = openDrawer;
+    el('drawerCloseBtn').onclick = closeDrawer;
+    el('drawerScrim').onclick = closeDrawer;
+    el('drawerLogoutBtn').onclick = () => { closeDrawer(); logout(); };
+    document.addEventListener('keydown', (event) => {
+      if (!document.body.classList.contains('shelf-immersive')) return;
+      if (document.body.classList.contains('drawer-open')) return;
+      if (event.key === 'ArrowDown' || event.key === 'PageDown') { event.preventDefault(); shelfStep(1); }
+      else if (event.key === 'ArrowUp' || event.key === 'PageUp') { event.preventDefault(); shelfStep(-1); }
+    });
     el('searchBtn').onclick = searchBooks;
     el('keywordInput').addEventListener('keydown', (event) => { if (event.key === 'Enter') searchBooks(); });
     el('backBookshelfBtn').onclick = returnToBookshelfFromReader;

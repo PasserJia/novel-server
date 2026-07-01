@@ -138,6 +138,11 @@ export class MysqlStore implements OnModuleInit, OnModuleDestroy {
     return updated;
   }
 
+  async deleteUser(id: number): Promise<boolean> {
+    const [result] = await this.pool.execute<ResultSetHeader>('DELETE FROM users WHERE id = ?', [id]);
+    return result.affectedRows > 0;
+  }
+
   toPublicUser(user: User): PublicUser {
     const { passwordHash: _passwordHash, ...publicUser } = user;
     return publicUser;

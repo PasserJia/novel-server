@@ -114,6 +114,29 @@ export class InMemoryStore {
     return user;
   }
 
+  deleteUser(id: number): boolean {
+    if (!this.users.delete(id)) {
+      return false;
+    }
+    this.deleteSessionsForUser(id);
+    for (const [itemId, item] of this.bookshelf.entries()) {
+      if (item.userId === id) {
+        this.bookshelf.delete(itemId);
+      }
+    }
+    for (const [itemId, item] of this.progress.entries()) {
+      if (item.userId === id) {
+        this.progress.delete(itemId);
+      }
+    }
+    for (const [itemId, item] of this.preferences.entries()) {
+      if (item.userId === id) {
+        this.preferences.delete(itemId);
+      }
+    }
+    return true;
+  }
+
   toPublicUser(user: User): PublicUser {
     const { passwordHash: _passwordHash, ...publicUser } = user;
     return publicUser;

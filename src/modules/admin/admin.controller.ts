@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Patch, ParseIntPipe, UseGuards } from '@nestjs/common';
+import { Controller, Delete, Get, Param, Patch, ParseIntPipe, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '../auth/auth.guard';
 import { Roles } from '../auth/roles.decorator';
 import { RolesGuard } from '../auth/roles.guard';
@@ -23,5 +23,15 @@ export class AdminController {
   @Patch(':id/disable')
   disable(@Param('id', ParseIntPipe) id: number) {
     return this.adminService.setStatus(id, 'disabled');
+  }
+
+  @Patch(':id/reset-password')
+  resetPassword(@Param('id', ParseIntPipe) id: number) {
+    return this.adminService.resetPassword(id);
+  }
+
+  @Delete(':id')
+  delete(@Param('id', ParseIntPipe) id: number) {
+    return this.adminService.deleteUser(id);
   }
 }
