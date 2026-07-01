@@ -1,4 +1,14 @@
-import { Body, Controller, Get, Post, Req, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Post,
+  Req,
+  UploadedFile,
+  UseGuards,
+  UseInterceptors,
+} from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { User } from '../../store/models';
 import { AuthGuard } from './auth.guard';
 import { AuthService } from './auth.service';
@@ -34,6 +44,16 @@ export class AuthController {
   @Post('heartbeat')
   heartbeat(@Req() request: { token: string }) {
     return this.authService.heartbeat(request.token);
+  }
+
+  @UseGuards(AuthGuard)
+  @Post('avatar')
+  @UseInterceptors(FileInterceptor('file', { limits: { fileSize: 8 * 1024 * 1024 } }))
+  setAvatar(
+    @CurrentUser() user: User,
+    @UploadedFile() file: { buffer: Buffer; mimetype: string; originalname: string; size: number },
+  ) {
+    return this.authService.setAvatar(user, file);
   }
 
   @UseGuards(AuthGuard)

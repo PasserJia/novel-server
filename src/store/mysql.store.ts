@@ -118,13 +118,14 @@ export class MysqlStore implements OnModuleInit, OnModuleDestroy {
   async updateUser(user: User): Promise<User> {
     await this.pool.execute(
       `UPDATE users
-       SET password_hash = ?, nickname = ?, phone = ?, email = ?, role = ?, status = ?, last_login_at = ?, updated_at = CURRENT_TIMESTAMP
+       SET password_hash = ?, nickname = ?, phone = ?, email = ?, avatar_url = ?, role = ?, status = ?, last_login_at = ?, updated_at = CURRENT_TIMESTAMP
        WHERE id = ?`,
       [
         user.passwordHash,
         user.nickname ?? null,
         user.phone ?? null,
         user.email ?? null,
+        user.avatarUrl ?? null,
         user.role,
         user.status,
         user.lastLoginAt ? new Date(user.lastLoginAt) : null,
@@ -509,6 +510,21 @@ export class MysqlStore implements OnModuleInit, OnModuleDestroy {
     await this.pool.query('ALTER TABLE sessions MODIFY last_seen_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP');
   }
 
+  private async ensureUserAvatarColumn(): Promise<void> {
+    const [rows] = await this.pool.execute<DbRow[]>(
+      `SELECT COUNT(*) AS count
+       FROM INFORMATION_SCHEMA.COLUMNS
+       WHERE TABLE_SCHEMA = DATABASE()
+         AND TABLE_NAME = 'users'
+         AND COLUMN_NAME = 'avatar_url'`,
+    );
+    if (Number(rows[0]?.count ?? 0) > 0) {
+      return;
+    }
+
+    await this.pool.query('ALTER TABLE users ADD COLUMN avatar_url VARCHAR(500) NULL AFTER email');
+  }
+
   private async ensureSessionOnlineSinceColumn(): Promise<void> {
     const [rows] = await this.pool.execute<DbRow[]>(
       `SELECT COUNT(*) AS count
@@ -543,6 +559,7 @@ export class MysqlStore implements OnModuleInit, OnModuleDestroy {
         last_login_at DATETIME NULL
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     `);
+    await this.ensureUserAvatarColumn();
     await this.pool.query(`
       CREATE TABLE IF NOT EXISTS sessions (
         token VARCHAR(128) NOT NULL PRIMARY KEY,
@@ -658,6 +675,7 @@ export class MysqlStore implements OnModuleInit, OnModuleDestroy {
       nickname: this.optionalString(row.nickname),
       phone: this.optionalString(row.phone),
       email: this.optionalString(row.email),
+      avatarUrl: this.optionalString(row.avatar_url),
       role: row.role === 'admin' ? 'admin' : 'user',
       status: row.status === 'disabled' ? 'disabled' : 'enabled',
       createdAt: this.dateToIso(row.created_at),

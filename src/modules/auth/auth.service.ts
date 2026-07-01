@@ -3,9 +3,20 @@ import {
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
+import { randomBytes } from 'node:crypto';
+import { mkdirSync, writeFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { InMemoryStore } from '../../store/in-memory.store';
-import { PublicUser } from '../../store/models';
+import { PublicUser, User } from '../../store/models';
 import { LoginDto, RegisterDto, ResetPasswordDto } from './dto';
+
+const AVATAR_EXT: Record<string, string> = {
+  'image/jpeg': '.jpg',
+  'image/jpg': '.jpg',
+  'image/png': '.png',
+  'image/gif': '.gif',
+  'image/webp': '.webp',
+};
 
 @Injectable()
 export class AuthService {
@@ -62,5 +73,30 @@ export class AuthService {
   async heartbeat(token: string): Promise<{ success: true }> {
     await this.store.touchSession(token);
     return { success: true };
+  }
+
+  async setAvatar(
+    user: User,
+    file: { buffer: Buffer; mimetype: string; originalname: string; size: number },
+  ): Promise<PublicUser> {
+    if (!file || !file.buffer) {
+      throw new BadRequestException('未收到图片文件');
+    }
+    const ext = AVATAR_EXT[file.mimetype];
+    if (!ext) {
+      throw new BadRequestException('只支持 JPG / PNG / GIF / WEBP 图片');
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      throw new BadRequestException('图片不能超过 5MB');
+    }
+
+    const uploadsDir = join(process.cwd(), 'uploads');
+    mkdirSync(uploadsDir, { recursive: true });
+    const name = `avatar-${user.id}-${Date.now()}-${randomBytes(4).toString('hex')}${ext}`;
+    writeFileSync(join(uploadsDir, name), file.buffer);
+
+    user.avatarUrl = `/uploads/${name}`;
+    await this.store.updateUser(user);
+    return this.store.toPublicUser(user);
   }
 }

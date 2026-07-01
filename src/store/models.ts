@@ -8,6 +8,7 @@ export interface User {
   nickname?: string;
   phone?: string;
   email?: string;
+  avatarUrl?: string;
   role: UserRole;
   status: UserStatus;
   createdAt: string;
@@ -21,6 +22,7 @@ export interface PublicUser {
   nickname?: string;
   phone?: string;
   email?: string;
+  avatarUrl?: string;
   role: UserRole;
   status: UserStatus;
   createdAt: string;

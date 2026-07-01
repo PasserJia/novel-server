@@ -2056,6 +2056,345 @@ export class WebController {
       .shelf-cover.is-text { padding: 18% 14%; }
       .shelf-dots { left: 8px; }
     }
+
+    /* ============================================================= */
+    /* 暗色玻璃改版：登录 / 菜单抽屉 / 书城 / 用户管理                  */
+    /* 仅作用于这四个界面 + 书架卡片交互，阅读器与纸张主题保持不变      */
+    /* ============================================================= */
+    body {
+      --g-bg: #0e0c0a;
+      --g-bg-2: #16130f;
+      --g-ink: #efe7d6;
+      --g-sub: #b8ae9c;
+      --g-mute: #8b8173;
+      --g-glass: rgba(30, 26, 21, .56);
+      --g-glass-strong: rgba(24, 21, 17, .72);
+      --g-line: rgba(240, 232, 214, .12);
+      --g-line-soft: rgba(240, 232, 214, .07);
+      --g-teal: #37c2b0;
+      --g-teal-deep: #0f766e;
+      --g-gold: #d0a24f;
+      --g-seal: #d0584b;
+      --g-blur: saturate(150%) blur(20px);
+    }
+
+    /* ---- 深色底：书城 / 用户管理 ---- */
+    body.logged-in:not(.reader-mode):not(.shelf-immersive) {
+      background:
+        radial-gradient(1100px 620px at 82% -8%, rgba(55, 194, 176, .12), transparent 60%),
+        radial-gradient(900px 560px at 6% 8%, rgba(208, 162, 79, .10), transparent 58%),
+        radial-gradient(700px 520px at 50% 118%, rgba(208, 88, 75, .07), transparent 60%),
+        linear-gradient(180deg, var(--g-bg-2), var(--g-bg));
+    }
+    body.logged-in:not(.reader-mode):not(.shelf-immersive) .content { background: transparent; }
+    body.logged-in:not(.reader-mode):not(.shelf-immersive) .view-head h1 {
+      color: var(--g-ink); font-family: var(--font-display); letter-spacing: .01em;
+    }
+    body.logged-in:not(.reader-mode):not(.shelf-immersive) .view-head p { color: var(--g-mute); }
+
+    /* ---- 顶栏玻璃化 + 菜单图标融入左侧 ---- */
+    .topbar {
+      background: linear-gradient(180deg, rgba(20, 17, 13, .86), rgba(14, 12, 10, .78));
+      backdrop-filter: var(--g-blur); -webkit-backdrop-filter: var(--g-blur);
+      border-bottom: 1px solid var(--g-line-soft);
+      box-shadow: 0 1px 0 rgba(0,0,0,.4);
+    }
+    .brand strong { color: #f3ecdd; }
+    .brand span { color: #9f978a; }
+    body.logged-in:not(.shelf-immersive):not(.reader-mode) .topbar { padding-left: 60px; }
+    body.logged-in:not(.shelf-immersive):not(.reader-mode) #menuBtn {
+      position: fixed; top: 0; left: 0;
+      width: 58px; height: 58px;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 0; border: 0; box-shadow: none;
+      background: transparent; color: #e7dfce;
+      backdrop-filter: none; -webkit-backdrop-filter: none;
+      z-index: 40;
+    }
+    body.logged-in:not(.shelf-immersive):not(.reader-mode) #menuBtn:hover {
+      background: transparent; transform: none; color: #fff;
+    }
+    #menuBtn svg { width: 22px; height: 22px; transition: transform .22s var(--ease), opacity .22s var(--ease); opacity: .92; }
+    #menuBtn:hover svg { opacity: 1; transform: translateX(1px); }
+
+    /* ---- 抽屉玻璃化 ---- */
+    #drawer {
+      background: var(--g-glass-strong);
+      backdrop-filter: var(--g-blur); -webkit-backdrop-filter: var(--g-blur);
+      border-right: 1px solid var(--g-line);
+      box-shadow: 30px 0 80px rgba(0,0,0,.5);
+      color: var(--g-ink);
+    }
+    #drawer .drawer-head strong { color: var(--g-ink); }
+    #drawer .drawer-head .ghost { color: var(--g-sub); }
+    #drawer .nav button { color: var(--g-sub); border-radius: 12px; }
+    #drawer .nav button:hover { background: rgba(55,194,176,.12); color: var(--g-ink); }
+    #drawer .nav button.active {
+      background: linear-gradient(120deg, rgba(55,194,176,.24), rgba(55,194,176,.10));
+      color: #fff; box-shadow: inset 0 0 0 1px rgba(55,194,176,.4);
+    }
+    #drawer .nav small { color: var(--g-teal); opacity: .7; }
+    #drawerLogoutBtn {
+      background: rgba(240,232,214,.06); color: var(--g-sub);
+      border: 1px solid var(--g-line);
+    }
+    #drawerLogoutBtn:hover { background: rgba(208,88,75,.16); color: #fff; border-color: rgba(208,88,75,.5); }
+
+    /* ---- 用户卡片：圆形头像 + 账号 ---- */
+    #drawer .userbox {
+      display: flex; align-items: center; gap: 13px;
+      background: rgba(240,232,214,.05);
+      border: 1px solid var(--g-line);
+      border-radius: 16px; padding: 13px 15px; overflow: visible;
+    }
+    #drawer .userbox::before { display: none; }
+    #drawer .userbox #sideUsername { color: var(--g-ink); font-family: var(--font-display); font-size: 17px; margin: 0; }
+    .side-avatar {
+      position: relative; flex: 0 0 auto;
+      width: 50px; height: 50px; padding: 0;
+      border-radius: 50%; border: 1px solid rgba(55,194,176,.45);
+      background: linear-gradient(150deg, #2b6f68, #1a3f3b);
+      display: grid; place-items: center; overflow: visible; cursor: pointer;
+      box-shadow: 0 6px 18px rgba(0,0,0,.4), inset 0 0 0 2px rgba(14,12,10,.55);
+      transition: transform .22s var(--ease-out), box-shadow .22s var(--ease);
+    }
+    .side-avatar:hover { transform: translateY(-1px) scale(1.03); box-shadow: 0 10px 24px rgba(0,0,0,.5); }
+    .side-avatar:active { transform: scale(.97); }
+    .side-avatar img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
+    .side-avatar-text {
+      font-family: var(--font-display); font-size: 20px; font-weight: 600;
+      color: #eaf7f4; text-transform: uppercase; line-height: 1;
+    }
+    .side-avatar-edit {
+      position: absolute; right: -3px; bottom: -3px;
+      width: 20px; height: 20px; border-radius: 50%;
+      display: grid; place-items: center;
+      background: var(--g-teal); color: #06231f;
+      box-shadow: 0 2px 6px rgba(0,0,0,.5);
+    }
+    .side-avatar-edit svg { width: 11px; height: 11px; }
+
+    /* ---- 登录页：暗色玻璃 ---- */
+    .auth-wrap {
+      background:
+        radial-gradient(1000px 640px at 84% -6%, rgba(55,194,176,.16), transparent 58%),
+        radial-gradient(860px 560px at 4% 100%, rgba(208,162,79,.12), transparent 56%),
+        radial-gradient(620px 460px at 50% 46%, rgba(208,88,75,.06), transparent 62%),
+        linear-gradient(165deg, #14110d, #0b0a08);
+    }
+    .auth-wrap::before {
+      background-image:
+        linear-gradient(rgba(240,232,214,.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(240,232,214,.05) 1px, transparent 1px);
+    }
+    .auth-card {
+      background: var(--g-glass);
+      backdrop-filter: var(--g-blur); -webkit-backdrop-filter: var(--g-blur);
+      border: 1px solid var(--g-line);
+      box-shadow: 0 40px 90px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.05);
+    }
+    .auth-card h1 { color: var(--g-ink); }
+    .auth-card > .muted, .auth-card .muted { color: var(--g-mute); }
+    .auth-card label { color: var(--g-sub); }
+    .auth-card input {
+      background: rgba(12,10,8,.5); color: var(--g-ink);
+      border: 1px solid var(--g-line);
+    }
+    .auth-card input::placeholder { color: #776e61; }
+    .auth-card input:focus {
+      border-color: rgba(55,194,176,.6);
+      box-shadow: 0 0 0 3px rgba(55,194,176,.16), 0 0 22px rgba(55,194,176,.12);
+      background: rgba(12,10,8,.7);
+    }
+    .auth-card .toolbar button {
+      background: linear-gradient(120deg, var(--g-teal), var(--g-teal-deep));
+      color: #05221e; font-weight: 700; letter-spacing: .04em; border: 0;
+      box-shadow: 0 10px 26px rgba(55,194,176,.28);
+    }
+    .auth-card .toolbar button:hover { filter: brightness(1.06); box-shadow: 0 14px 32px rgba(55,194,176,.4); }
+    .auth-switch, .auth-sep { color: var(--g-mute); }
+    .auth-card .linklike { color: var(--g-teal); }
+    .auth-copy h2 { color: var(--g-ink); }
+    .auth-copy p { color: var(--g-sub); }
+    .auth-copy::before { color: rgba(55,194,176,.2); }
+
+    /* ---- 书城：搜索 + 结果卡玻璃化 ---- */
+    #bookstoreView .panel {
+      background: var(--g-glass); border: 1px solid var(--g-line);
+      backdrop-filter: var(--g-blur); -webkit-backdrop-filter: var(--g-blur);
+      box-shadow: 0 20px 50px rgba(0,0,0,.4);
+    }
+    #bookstoreView .search-bar input, #bookstoreView .search-bar select {
+      background: rgba(12,10,8,.5); color: var(--g-ink); border: 1px solid var(--g-line);
+    }
+    #bookstoreView .search-bar input::placeholder { color: #776e61; }
+    #bookstoreView .search-bar input:focus, #bookstoreView .search-bar select:focus {
+      border-color: rgba(55,194,176,.6); box-shadow: 0 0 0 3px rgba(55,194,176,.16);
+    }
+    #bookstoreView .search-bar button {
+      background: linear-gradient(120deg, var(--g-teal), var(--g-teal-deep));
+      color: #05221e; font-weight: 700; border: 0;
+      box-shadow: 0 8px 20px rgba(55,194,176,.28);
+    }
+    #bookstoreView .result-row, #usersView .user-row {
+      background: var(--g-glass); border: 1px solid var(--g-line);
+      backdrop-filter: var(--g-blur); -webkit-backdrop-filter: var(--g-blur);
+    }
+    #bookstoreView .result-row:hover, #usersView .user-row:hover {
+      border-color: rgba(55,194,176,.4);
+      box-shadow: 0 16px 40px rgba(0,0,0,.45), inset 0 0 0 1px rgba(55,194,176,.14);
+    }
+    #bookstoreView .book-title, #usersView .book-title { color: var(--g-ink); }
+    #bookstoreView .book-meta, #usersView .book-meta { color: var(--g-mute); }
+    #bookstoreView .empty, #usersView .empty {
+      color: var(--g-mute); background: var(--g-glass);
+      border: 1px dashed var(--g-line); backdrop-filter: var(--g-blur);
+    }
+    #bookstoreView .actions button, #usersView .actions button {
+      background: rgba(240,232,214,.06); color: var(--g-ink); border: 1px solid var(--g-line);
+    }
+    #bookstoreView .actions button:hover, #usersView .actions button.secondary:hover {
+      background: rgba(55,194,176,.16); border-color: rgba(55,194,176,.5);
+    }
+    #usersView .actions .danger {
+      background: rgba(208,88,75,.14); color: #f4c9c2; border-color: rgba(208,88,75,.4);
+    }
+    #usersView .actions .danger:hover { background: rgba(208,88,75,.28); color: #fff; }
+    #usersView .actions .muted { color: var(--g-mute); }
+    #usersView .user-status.online { color: #58d6a0; }
+    #usersView .user-status.offline { color: #d98b83; }
+    #bookstoreView .pager button { background: rgba(240,232,214,.06); color: var(--g-sub); border: 1px solid var(--g-line); }
+    #bookstoreView .pager button.active { background: var(--g-teal); color: #05221e; border-color: transparent; }
+    #bookstoreView .pager .muted { color: var(--g-mute); }
+    #refreshUsersBtn { background: rgba(240,232,214,.06); color: var(--g-sub); border: 1px solid var(--g-line); }
+    #refreshUsersBtn:hover { background: rgba(55,194,176,.16); border-color: rgba(55,194,176,.5); color: var(--g-ink); }
+
+    /* 入场错峰淡入（书城结果 / 用户行） */
+    #usersView .user-row { animation: riseIn .45s var(--ease-out) both; }
+    #usersView .user-row:nth-child(1){animation-delay:.02s} #usersView .user-row:nth-child(2){animation-delay:.06s}
+    #usersView .user-row:nth-child(3){animation-delay:.10s} #usersView .user-row:nth-child(4){animation-delay:.14s}
+    #usersView .user-row:nth-child(n+5){animation-delay:.18s}
+
+    /* ---- 书架：轻滑即翻页，保留清晰段落感 ---- */
+    .shelf-deck {
+      scroll-snap-type: y mandatory;
+      overscroll-behavior-y: contain;
+      scroll-behavior: auto;
+      touch-action: pan-y;
+    }
+    .shelf-slide { scroll-snap-stop: always; }
+
+    /* ---- 书架卡片：信息下移到右下角 + 精简 + 提示 ---- */
+    .shelf-slide::after {
+      background:
+        linear-gradient(to top, rgba(6,4,2,.82), rgba(6,4,2,.10) 34%, transparent 56%),
+        linear-gradient(to left, rgba(6,4,2,.44), transparent 42%);
+    }
+    .shelf-cover {
+      cursor: pointer;
+      backface-visibility: hidden;
+      transform: translateZ(0);
+      will-change: auto;
+    }
+    .shelf-info {
+      right: 0; left: auto; bottom: 0;
+      text-align: right;
+      max-width: min(82%, 620px);
+      padding: 0 26px calc(30px + env(safe-area-inset-bottom)) 18px;
+    }
+    .shelf-meta { margin-top: 6px; color: rgba(255,255,255,.8); }
+    .shelf-hint {
+      margin-top: 12px; font-size: 12px; letter-spacing: .04em;
+      color: rgba(255,255,255,.55);
+      display: inline-flex; align-items: center; justify-content: flex-end; gap: 6px;
+    }
+
+    /* ---- 长按玻璃动作面板 + 玻璃确认框（req6） ---- */
+    .glass-sheet-overlay {
+      position: fixed; inset: 0; z-index: 70;
+      display: flex; align-items: flex-end; justify-content: center;
+      padding: 0 14px calc(20px + env(safe-area-inset-bottom));
+      background: rgba(6,5,4,.42);
+      backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px);
+      opacity: 0; transition: opacity .22s var(--ease);
+    }
+    .glass-sheet-overlay.show { opacity: 1; }
+    .glass-confirm { align-self: center; }
+    .glass-sheet-overlay { align-items: flex-end; }
+    #glassConfirm { align-items: center; }
+    .glass-sheet, .glass-confirm {
+      width: min(440px, 100%);
+      background: rgba(30,27,22,.55);
+      backdrop-filter: saturate(160%) blur(26px); -webkit-backdrop-filter: saturate(160%) blur(26px);
+      border: 1px solid rgba(240,232,214,.16);
+      border-radius: 20px;
+      box-shadow: 0 30px 80px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.08);
+      padding: 12px;
+      transform: translateY(18px) scale(.98);
+      transition: transform .28s var(--ease-out);
+      color: var(--g-ink);
+    }
+    .glass-sheet-overlay.show .glass-sheet, .glass-sheet-overlay.show .glass-confirm { transform: none; }
+    .glass-sheet-title {
+      text-align: center; color: var(--g-sub); font-size: 13px;
+      padding: 8px 10px 12px; letter-spacing: .02em;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .glass-sheet-item {
+      width: 100%; height: 54px; border-radius: 14px;
+      display: flex; align-items: center; gap: 12px;
+      padding: 0 18px; margin-bottom: 8px;
+      background: rgba(240,232,214,.06); border: 1px solid var(--g-line);
+      color: var(--g-ink); font-size: 16px; font-weight: 600; cursor: pointer;
+      transition: background .18s var(--ease), transform .12s var(--ease), border-color .18s var(--ease);
+    }
+    .glass-sheet-item svg { width: 20px; height: 20px; opacity: .9; }
+    .glass-sheet-item:hover { background: rgba(55,194,176,.16); border-color: rgba(55,194,176,.45); }
+    .glass-sheet-item:active { transform: scale(.985); }
+    .glass-sheet-item.danger { color: #f4c9c2; }
+    .glass-sheet-item.danger:hover { background: rgba(208,88,75,.22); border-color: rgba(208,88,75,.5); color: #fff; }
+    .glass-sheet-cancel {
+      width: 100%; height: 50px; border-radius: 14px; margin-top: 2px;
+      background: rgba(240,232,214,.04); border: 1px solid var(--g-line-soft);
+      color: var(--g-sub); font-size: 15px; font-weight: 600; cursor: pointer;
+      transition: background .18s var(--ease);
+    }
+    .glass-sheet-cancel:hover { background: rgba(240,232,214,.09); color: var(--g-ink); }
+    .glass-confirm { padding: 24px 22px 18px; text-align: center; }
+    .glass-confirm h3 { font-family: var(--font-display); font-size: 20px; margin-bottom: 8px; color: var(--g-ink); }
+    .glass-confirm p { color: var(--g-sub); font-size: 14px; line-height: 1.6; margin-bottom: 18px; }
+    .glass-confirm-actions { display: flex; gap: 10px; }
+    .glass-confirm-actions .glass-sheet-cancel { margin: 0; height: 46px; }
+    .glass-confirm-ok {
+      flex: 1; height: 46px; border-radius: 14px; border: 0; cursor: pointer;
+      background: linear-gradient(120deg, var(--g-teal), var(--g-teal-deep));
+      color: #05221e; font-weight: 700; font-size: 15px;
+      box-shadow: 0 8px 20px rgba(55,194,176,.3);
+    }
+    .glass-confirm-ok.danger {
+      background: linear-gradient(120deg, #d0584b, #a3392e); color: #fff;
+      box-shadow: 0 8px 20px rgba(208,88,75,.34);
+    }
+    .glass-confirm-actions .glass-sheet-cancel { flex: 1; }
+
+    /* ---- 手机端抽屉：目录字体加大（req2） ---- */
+    @media (max-width: 920px) {
+      #drawer { width: min(90vw, 360px); padding-left: 18px; padding-right: 18px; }
+      #drawer .drawer-head strong { font-size: 25px; }
+      #drawer .nav { gap: 10px; }
+      #drawer .nav button {
+        height: 64px;
+        font-size: 21px;
+        font-weight: 700;
+        border-radius: 16px;
+        gap: 12px;
+        padding: 0 18px;
+      }
+      #drawer .nav small { font-size: 16px; width: 34px; }
+      #drawer .userbox #sideUsername { font-size: 20px; }
+      .side-avatar { width: 54px; height: 54px; }
+      .glass-sheet-item { height: 56px; font-size: 17px; }
+    }
   </style>
 </head>
 <body>
@@ -2073,7 +2412,7 @@ export class WebController {
   <section id="authView" class="auth-wrap">
     <div class="auth-card">
       <h1 id="authTitle">欢迎回来</h1>
-      <p class="muted" id="authSubtitle">登录后继续阅读，书架和进度都会自动同步。</p>
+      <p class="muted" id="authSubtitle">登录后接着读，书架与进度实时同步。</p>
 
       <div id="loginPanel">
         <label for="loginUsername">账号</label>
@@ -2130,22 +2469,28 @@ export class WebController {
     </div>
 
     <div class="auth-copy">
-      <h2>一个账号，带走你追的每一本书。</h2>
-      <p>书架、书签和阅读进度自动云端同步，换台设备登录也能接着上次的章节继续读。夜间模式和护眼模式，长夜追书也不累眼。</p>
+      <h2>一个账号，接续每一个<br>未读完的夜晚。</h2>
+      <p>书架、书签与阅读进度实时云端同步；换台设备登录，接着上次那一行继续。夜间与护眼双模式，长夜追书，眼睛也不累。</p>
     </div>
   </section>
 
   <section id="appView" class="app-shell hidden">
-    <button id="menuBtn" type="button" aria-label="菜单">☰</button>
+    <button id="menuBtn" type="button" aria-label="菜单"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><line x1="3.5" y1="7" x2="20.5" y2="7"/><line x1="3.5" y1="12" x2="20.5" y2="12"/><line x1="3.5" y1="17" x2="14" y2="17"/></svg></button>
     <div id="drawerScrim"></div>
     <aside class="sidebar" id="drawer">
       <div class="drawer-head">
-        <strong>书架</strong>
+        <strong>菜单</strong>
         <button id="drawerCloseBtn" class="ghost" type="button" aria-label="关闭">✕</button>
       </div>
       <div class="userbox">
+        <button id="sideAvatar" class="side-avatar" type="button" aria-label="更换头像">
+          <img id="sideAvatarImg" alt="" hidden />
+          <span id="sideAvatarText" class="side-avatar-text"></span>
+          <span class="side-avatar-edit" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+          </span>
+        </button>
         <strong id="sideUsername">-</strong>
-        <span id="sideRole">-</span>
       </div>
       <nav class="nav">
         <button class="active" data-view="bookshelf"><small>01</small>书架</button>
@@ -2165,7 +2510,7 @@ export class WebController {
         <div class="view-head">
           <div>
             <h1>书城</h1>
-            <p>当前来源为 quanben.io，搜索结果可直接加入书架。</p>
+            <p>输入书名，搜遍 quanben.io，一键收进书架，随时接着读。</p>
           </div>
         </div>
         <div class="panel">
@@ -2262,7 +2607,7 @@ export class WebController {
         <div class="view-head">
           <div>
             <h1>用户管理</h1>
-            <p>仅管理员可访问。支持查看、禁用和启用普通用户。</p>
+            <p>仅管理员可见。查看在线状态，启用 / 禁用、重置密码或删除普通用户。</p>
           </div>
           <button id="refreshUsersBtn" class="secondary">刷新</button>
         </div>
@@ -2272,6 +2617,7 @@ export class WebController {
   </section>
 
   <input type="file" id="coverFileInput" accept="image/*" class="hidden" />
+  <input type="file" id="avatarFileInput" accept="image/*" class="hidden" />
   <div id="toast" class="toast hidden"></div>
   <div id="loadingOverlay" class="loading-overlay hidden" role="status" aria-live="polite" aria-label="处理中">
     <div class="loading-card">
@@ -2284,6 +2630,30 @@ export class WebController {
       <h2 id="disabledTitle">账号已禁用</h2>
       <p>本用户已被禁用或删除</p>
       <button id="disabledConfirmBtn" type="button">确定</button>
+    </div>
+  </div>
+  <div id="shelfSheet" class="glass-sheet-overlay hidden" role="dialog" aria-modal="true">
+    <div class="glass-sheet">
+      <div class="glass-sheet-title" id="shelfSheetTitle">这本书</div>
+      <button class="glass-sheet-item" data-sheet="cover" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+        更换封面
+      </button>
+      <button class="glass-sheet-item danger" data-sheet="delete" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+        删除本书
+      </button>
+      <button class="glass-sheet-cancel" data-sheet="cancel" type="button">取消</button>
+    </div>
+  </div>
+  <div id="glassConfirm" class="glass-sheet-overlay hidden" role="dialog" aria-modal="true">
+    <div class="glass-confirm">
+      <h3 id="glassConfirmTitle">确认操作</h3>
+      <p id="glassConfirmText">确定要执行此操作吗？</p>
+      <div class="glass-confirm-actions">
+        <button class="glass-sheet-cancel" data-confirm="cancel" type="button">取消</button>
+        <button class="glass-confirm-ok" data-confirm="ok" type="button">确定</button>
+      </div>
     </div>
   </div>
 
@@ -2306,6 +2676,10 @@ export class WebController {
       catalogRendered: 0,
       pendingCoverId: null,
       shelfObserver: null,
+      shelfIndex: 0,
+      shelfStepLock: false,
+      shelfTouchStartY: 0,
+      shelfTouchHandled: false,
       preferences: { readerTheme: { fontSize: 18, night: false, eye: false } },
       saveTimer: null,
       sessionTimer: null,
@@ -2483,9 +2857,9 @@ export class WebController {
     function setAuthTab(name) {
       const titles = { login: '欢迎回来', register: '注册账号', reset: '找回密码' };
       const subtitles = {
-        login: '登录后继续阅读，书架和进度都会自动同步。',
-        register: '注册一个账号，马上开始追书。',
-        reset: '用绑定的手机号或邮箱重置密码。'
+        login: '登录后接着读，书架与进度实时同步。',
+        register: '几秒创建账号，马上开始追书。',
+        reset: '用绑定的手机号或邮箱，重设新密码。'
       };
       el('authTitle').textContent = titles[name] || titles.login;
       el('authSubtitle').textContent = subtitles[name] || subtitles.login;
@@ -2508,11 +2882,39 @@ export class WebController {
       if (state.user) {
         const roleText = state.user.role === 'admin' ? '管理员' : '普通用户';
         el('sessionText').textContent = state.user.username + ' / ' + roleText;
-        el('sideUsername').textContent = state.user.nickname || state.user.username;
-        el('sideRole').textContent = roleText + ' · ' + state.user.status;
+        el('sideUsername').textContent = state.user.username;
+        renderSideAvatar();
         document.querySelector('[data-view="users"]').classList.toggle('hidden', state.user.role !== 'admin');
       } else {
         el('sessionText').textContent = '未登录';
+      }
+    }
+    function renderSideAvatar() {
+      const img = el('sideAvatarImg');
+      const text = el('sideAvatarText');
+      const url = state.user && state.user.avatarUrl;
+      if (url) {
+        img.src = url;
+        img.hidden = false;
+        text.textContent = '';
+      } else {
+        img.hidden = true;
+        img.removeAttribute('src');
+        const name = ((state.user && (state.user.username || state.user.nickname)) || '?').trim();
+        text.textContent = name ? name[0].toUpperCase() : '?';
+      }
+    }
+    async function uploadAvatar(file) {
+      if (!file) return;
+      try {
+        const form = new FormData();
+        form.append('file', file);
+        const updated = await api('/auth/avatar', { method: 'POST', body: form });
+        state.user = Object.assign({}, state.user, updated);
+        renderSideAvatar();
+        toast('头像已更新');
+      } catch (error) {
+        toast(error.message, true);
       }
     }
     function showView(name) {
@@ -2713,55 +3115,72 @@ export class WebController {
         if (hasImage) {
           const url = encodeURI(book.customCoverUrl);
           bgStyle = ' style="background-image:url(&quot;' + url + '&quot;)"';
-          cover = '<div class="shelf-cover"><img src="' + escapeHtml(book.customCoverUrl) + '" alt="' + escapeHtml(novel.title) + '" /></div>';
+          cover = '<div class="shelf-cover" data-idx="' + index + '"><img src="' + escapeHtml(book.customCoverUrl) + '" alt="' + escapeHtml(novel.title) + '" /></div>';
         } else {
-          cover = '<div class="shelf-cover is-text ' + (isManual ? 'manual' : 'quanben') + '">' + escapeHtml(novel.title) + '</div>';
+          cover = '<div class="shelf-cover is-text ' + (isManual ? 'manual' : 'quanben') + '" data-idx="' + index + '">' + escapeHtml(novel.title) + '</div>';
         }
+        const author = novel.author ? escapeHtml(novel.author) + ' 著' : '';
         return '<section class="shelf-slide' + (hasImage ? '' : ' is-text') + '">' +
           '<div class="shelf-bg"' + bgStyle + '></div>' +
           cover +
           '<div class="shelf-info">' +
             '<div class="shelf-title">' + title + '</div>' +
-            '<div class="shelf-meta">作者：' + escapeHtml(novel.author) + ' · 来源：' + escapeHtml(novel.sourceCode) + '<br>加入时间：' + escapeHtml(fmtTime(book.addedAt)) + '</div>' +
-            '<div class="shelf-actions">' +
-              '<button class="shelf-read" data-read="' + index + '">阅读</button>' +
-              '<button class="ghost-on-dark shelf-icon-btn" data-cover="' + book.id + '" title="换封面" aria-label="换封面"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></button>' +
-              '<button class="ghost-on-dark shelf-icon-btn" data-delete="' + book.id + '" title="删除" aria-label="删除"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg></button>' +
-            '</div>' +
+            '<div class="shelf-meta">' + author + '</div>' +
+            '<div class="shelf-hint">轻点封面阅读 · 长按更多</div>' +
           '</div>' +
         '</section>';
       }).join('');
       el('shelfDots').innerHTML = state.books.map((_, i) => '<i' + (i === 0 ? ' class="active"' : '') + '></i>').join('');
-      deck.querySelectorAll('[data-read]').forEach((btn) => btn.onclick = () => openReader(state.books[Number(btn.dataset.read)]));
-      deck.querySelectorAll('[data-cover]').forEach((btn) => btn.onclick = () => {
-        state.pendingCoverId = Number(btn.dataset.cover);
-        el('coverFileInput').value = '';
-        el('coverFileInput').click();
-      });
-      deck.querySelectorAll('[data-delete]').forEach((btn) => btn.onclick = () => deleteBook(Number(btn.dataset.delete)));
+      deck.querySelectorAll('.shelf-cover[data-idx]').forEach((cover) => bindShelfCover(cover, Number(cover.dataset.idx)));
       const slides = Array.from(deck.querySelectorAll('.shelf-slide'));
       const dots = Array.from(el('shelfDots').children);
+      state.shelfIndex = Math.min(state.shelfIndex, Math.max(0, slides.length - 1));
+      updateShelfActive(state.shelfIndex);
       state.shelfObserver = new IntersectionObserver((entries) => {
         entries.forEach((e) => {
           if (e.isIntersecting) {
             const idx = slides.indexOf(e.target);
-            dots.forEach((d, i) => d.classList.toggle('active', i === idx));
+            if (!state.shelfStepLock && idx >= 0) {
+              state.shelfIndex = idx;
+              updateShelfActive(idx);
+            } else {
+              dots.forEach((d, i) => d.classList.toggle('active', i === state.shelfIndex));
+            }
           }
         });
-      }, { root: deck, threshold: 0.6 });
+      }, { root: deck, threshold: 0.72 });
       slides.forEach((s) => state.shelfObserver.observe(s));
+    }
+    function updateShelfActive(index) {
+      const deck = el('bookshelfList');
+      const slides = Array.from(deck.querySelectorAll('.shelf-slide'));
+      const dots = Array.from(el('shelfDots').children);
+      slides.forEach((slide, i) => slide.classList.toggle('is-active', i === index));
+      dots.forEach((dot, i) => dot.classList.toggle('active', i === index));
     }
     function shelfStep(dir) {
       const deck = el('bookshelfList');
       const slides = Array.from(deck.querySelectorAll('.shelf-slide'));
       if (slides.length < 2) return;
-      const h = deck.clientHeight || 1;
-      const cur = Math.round(deck.scrollTop / h);
-      const target = Math.min(slides.length - 1, Math.max(0, cur + dir));
-      slides[target].scrollIntoView({ behavior: 'smooth' });
+      const current = Math.min(slides.length - 1, Math.max(0, state.shelfIndex || 0));
+      const target = Math.min(slides.length - 1, Math.max(0, current + dir));
+      if (target === current || state.shelfStepLock) return;
+      state.shelfIndex = target;
+      state.shelfStepLock = true;
+      const top = target * (deck.clientHeight || 1);
+      deck.scrollTo({ top, behavior: 'auto' });
+      updateShelfActive(target);
+      if (navigator.vibrate) { try { navigator.vibrate(8); } catch (_) {} }
+      window.setTimeout(() => {
+        deck.scrollTop = top;
+        state.shelfStepLock = false;
+        state.shelfIndex = target;
+        updateShelfActive(state.shelfIndex);
+      }, 120);
     }
     async function deleteBook(id) {
-      if (!confirm('确认从书架删除这本书？')) return;
+      const ok = await glassConfirm({ title: '删除这本书', text: '确定从书架删除？删除后可在书城重新加入。', okText: '删除', danger: true });
+      if (!ok) return;
       try {
         await api('/bookshelf/' + id, { method: 'DELETE' });
         await loadBookshelf();
@@ -2769,6 +3188,63 @@ export class WebController {
       } catch (error) {
         toast(error.message, true);
       }
+    }
+    function bindShelfCover(cover, index) {
+      let timer = null, longFired = false, sx = 0, sy = 0;
+      const clearTimer = () => { if (timer) { clearTimeout(timer); timer = null; } };
+      cover.addEventListener('pointerdown', (e) => {
+        longFired = false; sx = e.clientX; sy = e.clientY;
+        clearTimer();
+        timer = setTimeout(() => {
+          longFired = true;
+          if (navigator.vibrate) { try { navigator.vibrate(12); } catch (_) {} }
+          openShelfSheet(index);
+        }, 480);
+      });
+      cover.addEventListener('pointermove', (e) => {
+        if (timer && (Math.abs(e.clientX - sx) > 12 || Math.abs(e.clientY - sy) > 12)) clearTimer();
+      });
+      cover.addEventListener('pointerup', clearTimer);
+      cover.addEventListener('pointercancel', clearTimer);
+      cover.addEventListener('pointerleave', clearTimer);
+      cover.addEventListener('click', (e) => {
+        if (longFired) { e.preventDefault(); e.stopPropagation(); longFired = false; return; }
+        openReader(state.books[index]);
+      });
+      cover.addEventListener('contextmenu', (e) => e.preventDefault());
+    }
+    function openShelfSheet(index) {
+      const book = state.books[index];
+      if (!book) return;
+      state.sheetBook = book;
+      el('shelfSheetTitle').textContent = (book.customTitle || (book.novel && book.novel.title) || '这本书');
+      const sheet = el('shelfSheet');
+      sheet.classList.remove('hidden');
+      requestAnimationFrame(() => sheet.classList.add('show'));
+    }
+    function closeShelfSheet() {
+      const sheet = el('shelfSheet');
+      sheet.classList.remove('show');
+      setTimeout(() => sheet.classList.add('hidden'), 220);
+    }
+    function glassConfirm(opts) {
+      opts = opts || {};
+      return new Promise((resolve) => {
+        el('glassConfirmTitle').textContent = opts.title || '确认操作';
+        el('glassConfirmText').textContent = opts.text || '';
+        const overlay = el('glassConfirm');
+        const okBtn = overlay.querySelector('[data-confirm="ok"]');
+        okBtn.textContent = opts.okText || '确定';
+        okBtn.classList.toggle('danger', !!opts.danger);
+        overlay.classList.remove('hidden');
+        requestAnimationFrame(() => overlay.classList.add('show'));
+        state.confirmResolve = (val) => {
+          overlay.classList.remove('show');
+          setTimeout(() => overlay.classList.add('hidden'), 220);
+          state.confirmResolve = null;
+          resolve(val);
+        };
+      });
     }
     async function searchBooks() {
       try {
@@ -3049,6 +3525,28 @@ export class WebController {
     el('drawerCloseBtn').onclick = closeDrawer;
     el('drawerScrim').onclick = closeDrawer;
     el('drawerLogoutBtn').onclick = () => { closeDrawer(); logout(); };
+    el('bookshelfList').addEventListener('wheel', (event) => {
+      if (!document.body.classList.contains('shelf-immersive')) return;
+      if (document.body.classList.contains('drawer-open')) return;
+      if (Math.abs(event.deltaY) < 10) return;
+      event.preventDefault();
+      shelfStep(event.deltaY > 0 ? 1 : -1);
+    }, { passive: false });
+    el('bookshelfList').addEventListener('touchstart', (event) => {
+      state.shelfTouchStartY = event.touches[0]?.clientY || 0;
+      state.shelfTouchHandled = false;
+    }, { passive: true });
+    el('bookshelfList').addEventListener('touchmove', (event) => {
+      if (!document.body.classList.contains('shelf-immersive')) return;
+      if (document.body.classList.contains('drawer-open')) return;
+      if (state.shelfTouchHandled) return;
+      const y = event.touches[0]?.clientY || 0;
+      const delta = state.shelfTouchStartY - y;
+      if (Math.abs(delta) < 18) return;
+      event.preventDefault();
+      state.shelfTouchHandled = true;
+      shelfStep(delta > 0 ? 1 : -1);
+    }, { passive: false });
     document.addEventListener('keydown', (event) => {
       if (!document.body.classList.contains('shelf-immersive')) return;
       if (document.body.classList.contains('drawer-open')) return;
@@ -3074,6 +3572,32 @@ export class WebController {
     el('nightSelect').onchange = onReaderSettingChange;
     el('eyeSelect').onchange = onReaderSettingChange;
     el('coverFileInput').addEventListener('change', uploadCover);
+    el('avatarFileInput').addEventListener('change', () => {
+      const f = el('avatarFileInput').files && el('avatarFileInput').files[0];
+      el('avatarFileInput').value = '';
+      uploadAvatar(f);
+    });
+    el('sideAvatar').onclick = () => { el('avatarFileInput').value = ''; el('avatarFileInput').click(); };
+    el('shelfSheet').onclick = (event) => {
+      const btn = event.target.closest('[data-sheet]');
+      if (!btn) { if (event.target === el('shelfSheet')) closeShelfSheet(); return; }
+      const action = btn.dataset.sheet;
+      const book = state.sheetBook;
+      closeShelfSheet();
+      if (!book || action === 'cancel') return;
+      if (action === 'cover') {
+        state.pendingCoverId = book.id;
+        el('coverFileInput').value = '';
+        el('coverFileInput').click();
+      } else if (action === 'delete') {
+        deleteBook(book.id);
+      }
+    };
+    el('glassConfirm').onclick = (event) => {
+      const btn = event.target.closest('[data-confirm]');
+      if (btn) { if (state.confirmResolve) state.confirmResolve(btn.dataset.confirm === 'ok'); return; }
+      if (event.target === el('glassConfirm') && state.confirmResolve) state.confirmResolve(false);
+    };
     el('readerContent').addEventListener('scroll', () => {
       updateReaderProgressText();
       clearTimeout(state.saveTimer);
