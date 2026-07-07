@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>小说阅读器 iOS 安装</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #15231f;
+      --muted: #66736f;
+      --line: rgba(21, 35, 31, 0.12);
+      --paper: #f7f4ec;
+      --jade: #2f7c68;
+      --jade-dark: #1f5e50;
+      --white: rgba(255, 255, 255, 0.78);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 14% 12%, rgba(47, 124, 104, 0.18), transparent 30%),
+        linear-gradient(135deg, #fbf7ed 0%, #eef5f2 100%);
+    }
+
+    main {
+      width: min(720px, 100%);
+      min-height: 100vh;
+      margin: 0 auto;
+      padding: max(28px, env(safe-area-inset-top)) 18px max(28px, env(safe-area-inset-bottom));
+      display: grid;
+      align-content: center;
+      gap: 18px;
+    }
+
+    .panel {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--white);
+      box-shadow: 0 20px 60px rgba(31, 94, 80, 0.14);
+      backdrop-filter: blur(18px);
+      padding: 22px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .brand img {
+      width: 68px;
+      height: 68px;
+      border-radius: 16px;
+      box-shadow: 0 10px 28px rgba(21, 35, 31, 0.16);
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(28px, 8vw, 42px);
+      line-height: 1.08;
+      letter-spacing: 0;
+    }
+
+    .subtitle {
+      margin: 8px 0 0;
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.65;
+    }
+
+    .actions {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+      margin-top: 22px;
+    }
+
+    a.button {
+      display: inline-flex;
+      min-height: 48px;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+      text-decoration: none;
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    .primary {
+      color: #fff;
+      background: var(--jade);
+      box-shadow: 0 12px 28px rgba(47, 124, 104, 0.22);
+    }
+
+    .secondary {
+      color: var(--jade-dark);
+      border: 1px solid rgba(47, 124, 104, 0.28);
+      background: rgba(255, 255, 255, 0.56);
+    }
+
+    .meta {
+      display: grid;
+      gap: 12px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.55;
+    }
+
+    .meta strong {
+      display: block;
+      color: var(--ink);
+      font-size: 14px;
+      margin-bottom: 2px;
+    }
+
+    @media (min-width: 560px) {
+      main {
+        padding-inline: 28px;
+      }
+
+      .panel {
+        padding: 30px;
+      }
+
+      .actions {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <section class="panel">
+      <div class="brand">
+        <img src="./icon-512.png" alt="" />
+        <div>
+          <h1>小说阅读器</h1>
+          <p class="subtitle">iOS 内测安装包。安装前请确认设备已加入当前开发签名配置。</p>
+        </div>
+      </div>
+      <div class="actions">
+        <a class="button primary" href="itms-services://?action=download-manifest&url=https://ai.passerjia.com:8848/downloads/ios/manifest.plist">安装到 iPhone</a>
+        <a class="button secondary" href="./novel-reader.ipa">下载 IPA</a>
+      </div>
+    </section>
+
+    <section class="panel">
+      <ul class="meta">
+        <li><strong>签名类型</strong>Apple Development，适合已登记或已连接调试设备安装。</li>
+        <li><strong>包标识</strong>com.passerjia.novelreader</li>
+        <li><strong>版本</strong>1.0 (1)</li>
+      </ul>
+    </section>
+  </main>
+</body>
+</html>
